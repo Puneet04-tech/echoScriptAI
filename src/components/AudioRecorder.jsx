@@ -6,14 +6,30 @@ const AudioRecorder = ({ onRecordingComplete }) => {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  
+  // Real-time transcription states
+  const [realTimeTranscript, setRealTimeTranscript] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const [isSpeechSupported, setIsSpeechSupported] = useState(true);
+  
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const finalTranscriptRef = useRef('');
 
   useEffect(() => {
+    // Check speech recognition support
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      setIsSpeechSupported(false);
+    }
+
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
       }
     };
   }, []);
@@ -21,6 +37,9 @@ const AudioRecorder = ({ onRecordingComplete }) => {
   const startRecording = async () => {
     setError('');
     setSuccess(false);
+    setRealTimeTranscript('');
+    setInterimTranscript('');
+    finalTranscriptRef.current = '';
     
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -41,7 +60,8 @@ const AudioRecorder = ({ onRecordingComplete }) => {
           const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
           const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
           
-          await onRecordingComplete(audioFile);
+          // Pass the audio file and the captured browser real-time transcript
+          await onRecordingComplete(audioFile, finalTranscriptRef.current.trim());
           setSuccess(true);
           
           // Reset success after 2 seconds
@@ -58,6 +78,43 @@ const AudioRecorder = ({ onRecordingComplete }) => {
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
       };
+
+      // Start Web Speech API Recognition simultaneously
+      if (isSpeechSupported) {
+        try {
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          recognitionRef.current = new SpeechRecognition();
+          recognitionRef.current.continuous = true;
+          recognitionRef.current.interimResults = true;
+          recognitionRef.current.lang = 'en-US';
+
+          recognitionRef.current.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              const result = event.results[i];
+              if (result.isFinal) {
+                finalTranscriptRef.current += result[0].transcript + ' ';
+                setRealTimeTranscript(finalTranscriptRef.current);
+              } else {
+                interim += result[0].transcript;
+              }
+            }
+            setInterimTranscript(interim);
+          };
+
+          recognitionRef.current.onerror = (event) => {
+            console.error('Speech recognition error in recorder:', event.error);
+            // Disable further speech recognition on network errors
+            if (event.error === 'network') {
+              setIsSpeechSupported(false);
+            }
+          };
+
+          recognitionRef.current.start();
+        } catch (recognitionError) {
+          console.error('Failed to initialize speech recognition:', recognitionError);
+        }
+      }
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
@@ -77,6 +134,15 @@ const AudioRecorder = ({ onRecordingComplete }) => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      
+      // Stop speech recognition
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (err) {
+          console.error('Error stopping speech recognition:', err);
+        }
+      }
       
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -152,9 +218,23 @@ const AudioRecorder = ({ onRecordingComplete }) => {
           </p>
         </div>
 
+        {/* Real-time Transcription Preview */}
+        {(realTimeTranscript || interimTranscript) && (
+          <div className="bg-purple-50/50 border border-purple-100 rounded-lg p-4 max-h-40 overflow-y-auto">
+            <p className="text-xs text-purple-700 font-semibold mb-1 uppercase tracking-wider">Live Speech Preview:</p>
+            <p className="text-sm text-gray-800 whitespace-pre-wrap">
+              {realTimeTranscript}
+              {interimTranscript && (
+                <span className="text-purple-600 italic font-medium animate-pulse">{interimTranscript}</span>
+              )}
+            </p>
+          </div>
+        )}
+
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-xs text-blue-700">
             <span className="font-medium">Tip:</span> Speak clearly and close to your microphone for best results.
+            {!isSpeechSupported && ' (Note: Live Speech Preview is only supported on Chrome, Edge, and Safari)'}
           </p>
         </div>
       </div>

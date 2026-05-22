@@ -14,6 +14,7 @@ function App() {
   const [backendConnected, setBackendConnected] = useState(true);
   const [showBrowserFallback, setShowBrowserFallback] = useState(false);
   const [fallbackAudioFile, setFallbackAudioFile] = useState(null);
+  const [fallbackTranscriptionId, setFallbackTranscriptionId] = useState(null);
   const [showRealTime, setShowRealTime] = useState(false);
 
   useEffect(() => {
@@ -52,7 +53,7 @@ function App() {
       
       // Start polling for transcription status
       if (result.transcription && result.transcription._id) {
-        await api.pollTranscriptionStatus(
+        const finalTranscription = await api.pollTranscriptionStatus(
           result.transcription._id,
           (updatedTranscription) => {
             // Update the specific transcription in the list
@@ -63,6 +64,12 @@ function App() {
             );
           }
         );
+
+        if (finalTranscription.status === 'failed') {
+          setFallbackAudioFile(file);
+          setFallbackTranscriptionId(finalTranscription._id);
+          setShowBrowserFallback(true);
+        }
       }
       
       await loadTranscriptions();
@@ -71,6 +78,7 @@ function App() {
       // Check if error suggests using browser fallback
       if (error.message && error.message.includes('All transcription providers failed')) {
         setFallbackAudioFile(file);
+        setFallbackTranscriptionId(null);
         setShowBrowserFallback(true);
       } else {
         throw error;
@@ -78,13 +86,13 @@ function App() {
     }
   };
 
-  const handleRecordingComplete = async (file) => {
+  const handleRecordingComplete = async (file, browserTranscript) => {
     try {
       const result = await api.transcribeAudio(file);
       
       // Start polling for transcription status
       if (result.transcription && result.transcription._id) {
-        await api.pollTranscriptionStatus(
+        const finalTranscription = await api.pollTranscriptionStatus(
           result.transcription._id,
           (updatedTranscription) => {
             setTranscriptions(prev => 
@@ -94,15 +102,61 @@ function App() {
             );
           }
         );
+
+        if (finalTranscription.status === 'failed') {
+          if (browserTranscript) {
+            // Automatically recover using pre-captured live preview transcript!
+            await api.updateTranscription(finalTranscription._id, {
+              transcription: browserTranscript,
+              status: 'completed',
+              provider: 'browser'
+            });
+            await loadTranscriptions();
+            setError('Server transcription failed. Automatically recovered using live speech preview transcript.');
+            setTimeout(() => setError(''), 5000);
+          } else {
+            setFallbackAudioFile(file);
+            setFallbackTranscriptionId(finalTranscription._id);
+            setShowBrowserFallback(true);
+          }
+        }
       }
       
       await loadTranscriptions();
     } catch (error) {
       console.error('Recording upload failed:', error);
       // Check if error suggests using browser fallback
-      if (error.message && error.message.includes('All transcription providers failed')) {
-        setFallbackAudioFile(file);
-        setShowBrowserFallback(true);
+      if (error.message && error.message.includes('All transcription providers failed') || error.message.includes('Request failed') || error.message.includes('Server')) {
+        if (browserTranscript) {
+          // Immediately save browserTranscript locally
+          const manualTranscription = {
+            _id: `browser-${Date.now()}`,
+            audioFile: {
+              filename: file.name,
+              originalName: file.name,
+              path: '',
+              mimetype: file.type,
+              size: file.size,
+            },
+            transcription: browserTranscript,
+            status: 'completed',
+            language: 'en',
+            duration: 0,
+            error: '',
+            processingTime: 0,
+            provider: 'browser',
+            useBrowserFallback: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          setTranscriptions(prev => [manualTranscription, ...prev]);
+          setError('Backend unavailable. Saved live transcription preview locally.');
+          setTimeout(() => setError(''), 5000);
+        } else {
+          setFallbackAudioFile(file);
+          setFallbackTranscriptionId(null);
+          setShowBrowserFallback(true);
+        }
       } else {
         throw error;
       }
@@ -121,32 +175,42 @@ function App() {
 
   const handleBrowserTranscriptionComplete = async (text, provider) => {
     try {
-      // Create a manual transcription entry for browser-based transcription
-      // Note: This won't be saved to the backend database
-      const manualTranscription = {
-        _id: `browser-${Date.now()}`,
-        audioFile: {
-          filename: fallbackAudioFile.name,
-          originalName: fallbackAudioFile.name,
-          path: '',
-          mimetype: fallbackAudioFile.type,
-          size: fallbackAudioFile.size,
-        },
-        transcription: text,
-        status: 'completed',
-        language: 'en',
-        duration: 0,
-        error: '',
-        processingTime: 0,
-        provider: provider,
-        useBrowserFallback: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      setTranscriptions(prev => [manualTranscription, ...prev]);
+      if (fallbackTranscriptionId) {
+        // Update the existing database record!
+        await api.updateTranscription(fallbackTranscriptionId, {
+          transcription: text,
+          status: 'completed',
+          provider: provider
+        });
+        await loadTranscriptions();
+      } else {
+        // Create a manual transcription entry for browser-based transcription
+        const manualTranscription = {
+          _id: `browser-${Date.now()}`,
+          audioFile: {
+            filename: fallbackAudioFile ? fallbackAudioFile.name : 'recorded-audio',
+            originalName: fallbackAudioFile ? fallbackAudioFile.name : 'recorded-audio',
+            path: '',
+            mimetype: fallbackAudioFile ? fallbackAudioFile.type : 'audio/webm',
+            size: fallbackAudioFile ? fallbackAudioFile.size : 0,
+          },
+          transcription: text,
+          status: 'completed',
+          language: 'en',
+          duration: 0,
+          error: '',
+          processingTime: 0,
+          provider: provider,
+          useBrowserFallback: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        
+        setTranscriptions(prev => [manualTranscription, ...prev]);
+      }
       setShowBrowserFallback(false);
       setFallbackAudioFile(null);
+      setFallbackTranscriptionId(null);
     } catch (error) {
       console.error('Failed to save browser transcription:', error);
       setError('Failed to save transcription');
@@ -156,6 +220,7 @@ function App() {
   const handleBrowserTranscriptionCancel = () => {
     setShowBrowserFallback(false);
     setFallbackAudioFile(null);
+    setFallbackTranscriptionId(null);
   };
 
   const handleTranscriptionUpdate = (id, newText) => {

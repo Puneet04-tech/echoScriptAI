@@ -177,10 +177,10 @@ const RealTimeTranscription = ({ onTranscriptionComplete, language = 'en-US' }) 
         <div className="bg-gray-50 rounded-lg p-4 min-h-[200px]">
           <div className="space-y-2">
             {transcript && (
-              <p className="text-gray-800 whitespace-pre-wrap">{transcript}</p>
+              <p className="text-gray-800 whitespace-pre-wrap font-medium">{transcript}</p>
             )}
             {interimTranscript && (
-              <p className="text-gray-500 italic whitespace-pre-wrap">{interimTranscript}</p>
+              <p className="text-purple-600 italic whitespace-pre-wrap font-medium animate-pulse">{interimTranscript}</p>
             )}
             {!transcript && !interimTranscript && (
               <p className="text-gray-400 text-center py-8">

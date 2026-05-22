@@ -177,6 +177,22 @@ router.delete('/transcription/:id', async (req, res) => {
   }
 });
 
+// Route to update transcription text
+router.put('/transcription/:id', async (req, res) => {
+  try {
+    const { transcription, status, provider } = req.body;
+    const updated = await transcriptionController.updateTranscription(req.params.id, {
+      transcription,
+      status: status || 'completed',
+      provider: provider || 'browser'
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error('Update transcription error:', error);
+    res.status(500).json({ message: 'Error updating transcription' });
+  }
+});
+
 // Route to get provider status
 router.get('/provider-status', (req, res) => {
   try {

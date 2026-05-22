@@ -1,4 +1,6 @@
 const OpenAI = require('openai');
+const fs = require('fs');
+const path = require('path');
 
 class WhisperService {
   constructor() {
@@ -15,13 +17,42 @@ class WhisperService {
     const startTime = Date.now();
     
     try {
+      let file = audioFile;
+      
+      // If audioFile is a buffer, save it as a temporary file
+      if (Buffer.isBuffer(audioFile) || audioFile instanceof Buffer) {
+        const tempDir = path.join(__dirname, '../uploads');
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+        const tempFilePath = path.join(tempDir, `temp-${Date.now()}.webm`);
+        fs.writeFileSync(tempFilePath, audioFile);
+        file = fs.createReadStream(tempFilePath);
+        
+        // Clean up temp file after transcription
+        const cleanup = () => {
+          try {
+            if (fs.existsSync(tempFilePath)) {
+              fs.unlinkSync(tempFilePath);
+            }
+          } catch (err) {
+            console.error('Error cleaning up temp file:', err);
+          }
+        };
+      }
+
       const transcription = await this.client.audio.transcriptions.create({
-        file: audioFile,
+        file: file,
         model: 'whisper-1',
         language: language,
         response_format: 'verbose_json',
         timestamp_granularities: ['segment'],
       });
+
+      // Clean up temp file if we created one
+      if (typeof cleanup === 'function') {
+        cleanup();
+      }
 
       const processingTime = Date.now() - startTime;
 

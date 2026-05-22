@@ -27,12 +27,16 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
-      // Server responded with error status
+      const status = error.response.status;
+      if (status === 429) {
+        // Quota exceeded – treat as all providers failed
+        throw new Error('All transcription providers failed');
+      }
       const message = error.response.data?.message || error.response.data?.error || 'Request failed';
       throw new Error(message);
     } else if (error.request) {
       // Request made but no response received
-      throw new Error('No response from server. Please check if the backend is running.');
+      throw new Error('All transcription providers failed');
     } else {
       // Error in request setup
       throw new Error(error.message || 'Request setup failed');
@@ -42,7 +46,7 @@ axiosInstance.interceptors.response.use(
 
 export const api = {
   // Upload and transcribe audio file
-  async transcribeAudio(file, provider = 'google', language = 'en-US') {
+  async transcribeAudio(file, provider = 'auto', language = 'en-US') {
     const formData = new FormData();
     formData.append('audio', file);
     formData.append('provider', provider);
@@ -76,6 +80,12 @@ export const api = {
   // Delete transcription
   async deleteTranscription(id) {
     const response = await axiosInstance.delete(`/transcription/${id}`);
+    return response.data;
+  },
+
+  // Update transcription
+  async updateTranscription(id, updates) {
+    const response = await axiosInstance.put(`/transcription/${id}`, updates);
     return response.data;
   },
 

@@ -35,22 +35,28 @@ class TranscriptionController {
    * @returns {Promise<Object>} Transcription result
    */
   async transcribe(filePath, provider = null, languageCode = 'en') {
-    const selectedProvider = provider || this.defaultProvider;
+    let selectedProvider = provider || this.defaultProvider;
+    
+    // Normalize and validate provider
+    let providerLower = selectedProvider ? selectedProvider.toLowerCase() : 'auto';
+    if (providerLower !== 'whisper' && providerLower !== 'deepgram' && providerLower !== 'auto') {
+      console.warn(`Unsupported provider: ${selectedProvider}. Falling back to 'auto'.`);
+      providerLower = 'auto';
+    }
+
     const providersToTry = [];
 
     // Determine which providers to try based on selection
-    if (selectedProvider.toLowerCase() === 'auto') {
+    if (providerLower === 'auto') {
       // Try all available providers in order
       if (this.whisperService) providersToTry.push('whisper');
       if (this.deepgramService) providersToTry.push('deepgram');
-    } else if (selectedProvider.toLowerCase() === 'whisper') {
+    } else if (providerLower === 'whisper') {
       providersToTry.push('whisper');
       if (this.deepgramService) providersToTry.push('deepgram'); // Fallback
-    } else if (selectedProvider.toLowerCase() === 'deepgram') {
+    } else if (providerLower === 'deepgram') {
       providersToTry.push('deepgram');
       if (this.whisperService) providersToTry.push('whisper'); // Fallback
-    } else {
-      throw new Error(`Unsupported provider: ${selectedProvider}. Use 'whisper', 'deepgram', or 'auto'.`);
     }
 
     // Try each provider in order
@@ -198,6 +204,25 @@ class TranscriptionController {
       return transcription;
     } catch (error) {
       console.error('Delete transcription error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update transcription
+   * @param {string} id - Transcription ID
+   * @param {Object} updates - Fields to update
+   * @returns {Promise<Object>} Updated transcription
+   */
+  async updateTranscription(id, updates) {
+    try {
+      return await Transcription.findByIdAndUpdate(
+        id,
+        { ...updates, updatedAt: Date.now() },
+        { new: true }
+      );
+    } catch (error) {
+      console.error('Update transcription error:', error);
       throw error;
     }
   }

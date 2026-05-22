@@ -87,9 +87,8 @@ const transcriptionSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt timestamp before saving
-transcriptionSchema.pre('save', function(next) {
+transcriptionSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 // Create indexes for better query performance
