@@ -1,0 +1,89 @@
+const mongoose = require('mongoose');
+
+const transcriptionSchema = new mongoose.Schema({
+  // Audio file information
+  audioFile: {
+    filename: {
+      type: String,
+      required: true
+    },
+    originalName: {
+      type: String,
+      required: true
+    },
+    path: {
+      type: String,
+      required: true
+    },
+    mimetype: {
+      type: String,
+      required: true
+    },
+    size: {
+      type: Number,
+      required: true
+    }
+  },
+
+  // Transcription details
+  transcription: {
+    type: String,
+    default: ''
+  },
+
+  // Transcription status
+  status: {
+    type: String,
+    enum: ['pending', 'processing', 'completed', 'failed'],
+    default: 'pending'
+  },
+
+  // Language detection
+  language: {
+    type: String,
+    default: 'en'
+  },
+
+  // Audio duration in seconds
+  duration: {
+    type: Number,
+    default: 0
+  },
+
+  // Error message if transcription failed
+  error: {
+    type: String,
+    default: ''
+  },
+
+  // Processing metadata
+  processingTime: {
+    type: Number,
+    default: 0
+  },
+
+  // Timestamps
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Update the updatedAt timestamp before saving
+transcriptionSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+// Create indexes for better query performance
+transcriptionSchema.index({ status: 1 });
+transcriptionSchema.index({ createdAt: -1 });
+transcriptionSchema.index({ language: 1 });
+
+const Transcription = mongoose.model('Transcription', transcriptionSchema);
+
+module.exports = Transcription;

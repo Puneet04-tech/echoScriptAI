@@ -5,11 +5,13 @@ Backend server for the EchoScriptAI audio transcription application.
 ## Features
 
 - Express.js server with REST API
+- MongoDB database with Mongoose ODM
 - File upload handling using Multer
 - Support for single and multiple audio file uploads
 - Audio file validation (MP3, WAV, OGG, WebM, etc.)
 - CORS enabled for frontend integration
 - Environment variable configuration
+- Transcription schema for storing audio and text data
 
 ## Installation
 
@@ -18,9 +20,19 @@ Backend server for the EchoScriptAI audio transcription application.
 npm install
 ```
 
-2. Create a `.env` file in the backend directory:
+2. Set up MongoDB:
+   - Create a MongoDB Atlas cluster (or use local MongoDB)
+   - Get your connection string
+
+3. Create a `.env` file in the backend directory:
+```bash
+cp .env.example .env
+```
+
+4. Update the `.env` file with your MongoDB connection string:
 ```
 PORT=5000
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/echoscriptai?retryWrites=true&w=majority
 ```
 
 ## Usage
@@ -72,18 +84,24 @@ Maximum file size: 50MB per file
 
 ```
 backend/
+├── config/
+│   └── db.js           # Database configuration
+├── models/
+│   └── Transcription.js # Mongoose schema for transcriptions
 ├── routes/
 │   └── upload.js       # Upload routes
 ├── uploads/            # Temporary file storage
 ├── server.js           # Main server file
 ├── package.json        # Dependencies
-├── .env                # Environment variables
+├── .env.example        # Environment variables template
+├── .env                # Environment variables (not in git)
 └── .gitignore          # Git ignore rules
 ```
 
 ## Dependencies
 
 - express: Web framework
+- mongoose: MongoDB object modeling
 - multer: File upload handling
 - cors: Cross-origin resource sharing
 - dotenv: Environment variable management
@@ -91,7 +109,8 @@ backend/
 
 ## Next Steps
 
-- Connect to MongoDB database
 - Implement OpenAI Whisper API integration
+- Add transcription endpoints
 - Add authentication
 - Add transcription history endpoints
+- Implement audio recording functionality
