@@ -3,6 +3,7 @@ import FileUpload from './components/FileUpload';
 import AudioRecorder from './components/AudioRecorder';
 import TranscriptionList from './components/TranscriptionList';
 import BrowserTranscription from './components/BrowserTranscription';
+import TranscriptionStats from './components/TranscriptionStats';
 import { api } from './services/api';
 
 function App() {
@@ -155,6 +156,15 @@ function App() {
     setFallbackAudioFile(null);
   };
 
+  const handleTranscriptionUpdate = (id, newText) => {
+    // Update local state for browser-based transcriptions
+    setTranscriptions(prev => 
+      prev.map(t => 
+        t._id === id ? { ...t, transcription: newText } : t
+      )
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
       {/* Header */}
@@ -217,7 +227,8 @@ function App() {
           </div>
 
           {/* Right Column - Transcriptions */}
-          <div>
+          <div className="space-y-6">
+            <TranscriptionStats transcriptions={transcriptions} />
             {loading ? (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -229,6 +240,7 @@ function App() {
               <TranscriptionList
                 transcriptions={transcriptions}
                 onDelete={handleDeleteTranscription}
+                onUpdate={handleTranscriptionUpdate}
               />
             )}
           </div>

@@ -1,8 +1,13 @@
 import { useState } from 'react';
 
-const TranscriptionList = ({ transcriptions, onDelete }) => {
+const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
   const [expandedId, setExpandedId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [providerFilter, setProviderFilter] = useState('all');
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -42,6 +47,112 @@ const TranscriptionList = ({ transcriptions, onDelete }) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  const startEdit = (id, text) => {
+    setEditingId(id);
+    setEditText(text);
+  };
+
+  const saveEdit = (id) => {
+    if (onUpdate) {
+      onUpdate(id, editText);
+    }
+    setEditingId(null);
+    setEditText('');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditText('');
+  };
+
+  // Filter transcriptions based on search and filters
+  const filteredTranscriptions = transcriptions.filter((transcription) => {
+    const matchesSearch = 
+      searchTerm === '' ||
+      transcription.transcription?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transcription.audioFile.originalName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || transcription.status === statusFilter;
+    const matchesProvider = providerFilter === 'all' || transcription.provider === providerFilter;
+    
+    return matchesSearch && matchesStatus && matchesProvider;
+  });
+
+  const exportTranscription = (transcription, format) => {
+    const text = transcription.transcription || '';
+    let content = '';
+    let filename = '';
+    let mimeType = '';
+
+    switch (format) {
+      case 'txt':
+        content = text;
+        filename = `${transcription.audioFile.originalName}.txt`;
+        mimeType = 'text/plain';
+        break;
+      case 'srt':
+        content = generateSRT(text, transcription.createdAt);
+        filename = `${transcription.audioFile.originalName}.srt`;
+        mimeType = 'text/plain';
+        break;
+      case 'vtt':
+        content = generateVTT(text, transcription.createdAt);
+        filename = `${transcription.audioFile.originalName}.vtt`;
+        mimeType = 'text/plain';
+        break;
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const generateSRT = (text, timestamp) => {
+    const lines = text.split('\n').filter(line => line.trim());
+    let srt = 'WEBVTT\n\n';
+    lines.forEach((line, index) => {
+      const startTime = index * 3;
+      const endTime = (index + 1) * 3;
+      srt += `${index + 1}\n`;
+      srt += `${formatSRTTime(startTime)} --> ${formatSRTTime(endTime)}\n`;
+      srt += `${line}\n\n`;
+    });
+    return srt;
+  };
+
+  const generateVTT = (text, timestamp) => {
+    const lines = text.split('\n').filter(line => line.trim());
+    let vtt = 'WEBVTT\n\n';
+    lines.forEach((line, index) => {
+      const startTime = index * 3;
+      const endTime = (index + 1) * 3;
+      vtt += `${index + 1}\n`;
+      vtt += `${formatVTTTime(startTime)} --> ${formatVTTTime(endTime)}\n`;
+      vtt += `${line}\n\n`;
+    });
+    return vtt;
+  };
+
+  const formatSRTTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')},000`;
+  };
+
+  const formatVTTTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.000`;
+  };
+
   if (!transcriptions || transcriptions.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -59,10 +170,60 @@ const TranscriptionList = ({ transcriptions, onDelete }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Transcriptions</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">Transcriptions</h2>
+        <span className="text-sm text-gray-500">
+          {filteredTranscriptions.length} of {transcriptions.length}
+        </span>
+      </div>
+      
+      {/* Search and Filters */}
+      <div className="space-y-3 mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search transcriptions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        
+        <div className="flex space-x-3">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="completed">Completed</option>
+            <option value="processing">Processing</option>
+            <option value="failed">Failed</option>
+          </select>
+          
+          <select
+            value={providerFilter}
+            onChange={(e) => setProviderFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+          >
+            <option value="all">All Providers</option>
+            <option value="whisper">Whisper</option>
+            <option value="deepgram">Deepgram</option>
+            <option value="browser">Browser</option>
+          </select>
+        </div>
+      </div>
       
       <div className="space-y-4">
-        {transcriptions.map((transcription) => {
+        {filteredTranscriptions.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>No transcriptions match your filters</p>
+          </div>
+        ) : (
+          filteredTranscriptions.map((transcription) => {
           const isExpanded = expandedId === transcription._id;
           const text = transcription.transcription || '';
           const shouldTruncate = text.length > 200 && !isExpanded;
@@ -79,6 +240,11 @@ const TranscriptionList = ({ transcriptions, onDelete }) => {
                     <span className={`px-2 py-1 text-xs font-medium rounded border ${getStatusColor(transcription.status)}`}>
                       {transcription.status.charAt(0).toUpperCase() + transcription.status.slice(1)}
                     </span>
+                    {transcription.provider && (
+                      <span className="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-800 border-purple-200">
+                        {transcription.provider.charAt(0).toUpperCase() + transcription.provider.slice(1)}
+                      </span>
+                    )}
                     <span className="text-xs text-gray-500">
                       {formatDate(transcription.createdAt)}
                     </span>
@@ -122,34 +288,95 @@ const TranscriptionList = ({ transcriptions, onDelete }) => {
 
               {transcription.status === 'completed' && transcription.transcription && (
                 <div className="bg-gray-50 rounded p-3">
-                  <div className="flex items-start justify-between mb-2">
-                    <p className="text-gray-700 whitespace-pre-wrap flex-1">{displayText}</p>
-                    <div className="flex items-center space-x-2 ml-2">
-                      {text.length > 200 && (
+                  {editingId === transcription._id ? (
+                    <div className="space-y-3">
+                      <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                        rows={4}
+                      />
+                      <div className="flex space-x-2">
                         <button
-                          onClick={() => toggleExpand(transcription._id)}
-                          className="text-purple-600 hover:text-purple-800 text-xs font-medium"
+                          onClick={() => saveEdit(transcription._id)}
+                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                         >
-                          {isExpanded ? 'Show less' : 'Show more'}
+                          Save
                         </button>
-                      )}
-                      <button
-                        onClick={() => handleCopy(text, transcription._id)}
-                        className="text-gray-500 hover:text-gray-700 p-1"
-                        title="Copy transcription"
-                      >
-                        {copiedId === transcription._id ? (
-                          <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        )}
-                      </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="text-gray-700 whitespace-pre-wrap flex-1">{displayText}</p>
+                      <div className="flex items-center space-x-2 ml-2">
+                        {text.length > 200 && (
+                          <button
+                            onClick={() => toggleExpand(transcription._id)}
+                            className="text-purple-600 hover:text-purple-800 text-xs font-medium"
+                          >
+                            {isExpanded ? 'Show less' : 'Show more'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleCopy(text, transcription._id)}
+                          className="text-gray-500 hover:text-gray-700 p-1"
+                          title="Copy transcription"
+                        >
+                          {copiedId === transcription._id ? (
+                            <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => startEdit(transcription._id, text)}
+                          className="text-gray-500 hover:text-gray-700 p-1"
+                          title="Edit transcription"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2h2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <div className="relative group">
+                          <button className="text-gray-500 hover:text-gray-700 p-1" title="Export">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                          </button>
+                          <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-10">
+                            <button
+                              onClick={() => exportTranscription(transcription, 'txt')}
+                              className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              Export TXT
+                            </button>
+                            <button
+                              onClick={() => exportTranscription(transcription, 'srt')}
+                              className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              Export SRT
+                            </button>
+                            <button
+                              onClick={() => exportTranscription(transcription, 'vtt')}
+                              className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              Export VTT
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {transcription.processingTime > 0 && (
                     <p className="text-xs text-gray-500 mt-2">
                       Processing time: {transcription.processingTime}ms
@@ -159,7 +386,8 @@ const TranscriptionList = ({ transcriptions, onDelete }) => {
               )}
             </div>
           );
-        })}
+        })
+        )}
       </div>
     </div>
   );

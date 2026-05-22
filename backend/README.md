@@ -184,9 +184,10 @@ backend/
 
 ## Next Steps
 
-- Add authentication
-- Implement audio recording functionality in frontend
-- Add user-specific transcription history
+- Add authentication and user management
 - Implement real-time transcription streaming
-- Add transcription editing capabilities
-- Export transcriptions to different formats (TXT, SRT, VTT)
+- Add transcription editing capabilities (frontend implemented)
+- Export transcriptions to different formats (TXT, SRT, VTT - frontend implemented)
+- Add transcription search and filtering (frontend implemented)
+- Add transcription statistics dashboard (frontend implemented)
+- Add audio playback with synchronized text highlighting
