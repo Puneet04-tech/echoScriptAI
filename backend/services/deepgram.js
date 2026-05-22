@@ -6,7 +6,12 @@ class DeepgramService {
       throw new Error('DEEPGRAM_API_KEY environment variable is not set');
     }
     
-    this.deepgram = new Deepgram(process.env.DEEPGRAM_API_KEY);
+    // Temporarily disable Deepgram due to SDK version compatibility issues
+    // User can use real-time transcription (Web Speech API) as alternative
+    throw new Error('Deepgram service temporarily disabled. Use Whisper or real-time transcription instead.');
+    
+    // This code is for future reference when SDK compatibility is resolved
+    // this.deepgram = new Deepgram(process.env.DEEPGRAM_API_KEY);
   }
 
   async transcribe(audioBuffer, language = 'en') {
@@ -20,7 +25,6 @@ class DeepgramService {
           language: language,
           punctuate: true,
           paragraphs: true,
-          diarize: false,
           smart_format: true,
         }
       );

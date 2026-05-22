@@ -4,6 +4,7 @@ import AudioRecorder from './components/AudioRecorder';
 import TranscriptionList from './components/TranscriptionList';
 import BrowserTranscription from './components/BrowserTranscription';
 import TranscriptionStats from './components/TranscriptionStats';
+import RealTimeTranscription from './components/RealTimeTranscription';
 import { api } from './services/api';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
   const [backendConnected, setBackendConnected] = useState(true);
   const [showBrowserFallback, setShowBrowserFallback] = useState(false);
   const [fallbackAudioFile, setFallbackAudioFile] = useState(null);
+  const [showRealTime, setShowRealTime] = useState(false);
 
   useEffect(() => {
     checkBackendConnection();
@@ -165,6 +167,27 @@ function App() {
     );
   };
 
+  const handleRealTimeTranscriptionComplete = (text) => {
+    // Add real-time transcription to the list
+    const newTranscription = {
+      _id: Date.now().toString(),
+      audioFile: {
+        filename: 'real-time-' + Date.now(),
+        originalName: 'Real-time Transcription',
+        size: 0,
+        mimetype: 'audio/webm',
+      },
+      transcription: text,
+      status: 'completed',
+      language: 'en-US',
+      provider: 'browser',
+      createdAt: new Date().toISOString(),
+      useBrowserFallback: true,
+    };
+    
+    setTranscriptions(prev => [newTranscription, ...prev]);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
       {/* Header */}
@@ -175,10 +198,20 @@ function App() {
               <h1 className="text-3xl font-bold text-gray-900">EchoScriptAI</h1>
               <p className="text-gray-600 mt-1">Audio Transcription Service</p>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowRealTime(!showRealTime)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  showRealTime
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {showRealTime ? 'File Upload' : 'Real-Time'}
+              </button>
               <div className={`w-3 h-3 rounded-full ${backendConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
               <span className="text-sm text-gray-600">
-                {backendConnected ? 'Backend Connected' : 'Backend Disconnected'}
+                {backendConnected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
           </div>
@@ -217,6 +250,10 @@ function App() {
                 audioFile={fallbackAudioFile}
                 onTranscriptionComplete={handleBrowserTranscriptionComplete}
                 onCancel={handleBrowserTranscriptionCancel}
+              />
+            ) : showRealTime ? (
+              <RealTimeTranscription
+                onTranscriptionComplete={handleRealTimeTranscriptionComplete}
               />
             ) : (
               <>
