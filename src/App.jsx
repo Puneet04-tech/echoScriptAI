@@ -7,26 +7,58 @@ import { api } from './services/api';
 function App() {
   const [transcriptions, setTranscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [backendConnected, setBackendConnected] = useState(true);
 
   useEffect(() => {
+    checkBackendConnection();
     loadTranscriptions();
   }, []);
+
+  const checkBackendConnection = async () => {
+    try {
+      await api.getProviderStatus();
+      setBackendConnected(true);
+    } catch (error) {
+      console.error('Backend connection failed:', error);
+      setBackendConnected(false);
+      setError('Cannot connect to backend. Please ensure the server is running.');
+    }
+  };
 
   const loadTranscriptions = async () => {
     try {
       setLoading(true);
       const data = await api.getTranscriptions();
       setTranscriptions(data);
+      setError('');
     } catch (error) {
       console.error('Failed to load transcriptions:', error);
+      setError(error.message || 'Failed to load transcriptions');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async (file, onProgress) => {
     try {
-      await api.transcribeAudio(file);
+      const result = await api.transcribeAudio(file);
+      
+      // Start polling for transcription status
+      if (result.transcription && result.transcription._id) {
+        await api.pollTranscriptionStatus(
+          result.transcription._id,
+          (updatedTranscription) => {
+            // Update the specific transcription in the list
+            setTranscriptions(prev => 
+              prev.map(t => 
+                t._id === updatedTranscription._id ? updatedTranscription : t
+              )
+            );
+          }
+        );
+      }
+      
       await loadTranscriptions();
     } catch (error) {
       console.error('Upload failed:', error);
@@ -36,7 +68,22 @@ function App() {
 
   const handleRecordingComplete = async (file) => {
     try {
-      await api.transcribeAudio(file);
+      const result = await api.transcribeAudio(file);
+      
+      // Start polling for transcription status
+      if (result.transcription && result.transcription._id) {
+        await api.pollTranscriptionStatus(
+          result.transcription._id,
+          (updatedTranscription) => {
+            setTranscriptions(prev => 
+              prev.map(t => 
+                t._id === updatedTranscription._id ? updatedTranscription : t
+              )
+            );
+          }
+        );
+      }
+      
       await loadTranscriptions();
     } catch (error) {
       console.error('Recording upload failed:', error);
@@ -50,6 +97,7 @@ function App() {
       await loadTranscriptions();
     } catch (error) {
       console.error('Delete failed:', error);
+      setError(error.message || 'Failed to delete transcription');
     }
   };
 
@@ -64,12 +112,36 @@ function App() {
               <p className="text-gray-600 mt-1">Audio Transcription Service</p>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-600">Backend Connected</span>
+              <div className={`w-3 h-3 rounded-full ${backendConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+              <span className="text-sm text-gray-600">
+                {backendConnected ? 'Backend Connected' : 'Backend Disconnected'}
+              </span>
             </div>
           </div>
         </div>
       </header>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-red-50 border-b border-red-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm text-red-700">{error}</span>
+              <button
+                onClick={() => setError('')}
+                className="ml-auto text-red-600 hover:text-red-800"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -84,8 +156,9 @@ function App() {
           <div>
             {loading ? (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  <p className="text-gray-600">Loading transcriptions...</p>
                 </div>
               </div>
             ) : (

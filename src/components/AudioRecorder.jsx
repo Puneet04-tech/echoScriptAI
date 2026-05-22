@@ -3,7 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 const AudioRecorder = ({ onRecordingComplete }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
@@ -18,6 +20,7 @@ const AudioRecorder = ({ onRecordingComplete }) => {
 
   const startRecording = async () => {
     setError('');
+    setSuccess(false);
     
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -31,10 +34,26 @@ const AudioRecorder = ({ onRecordingComplete }) => {
         }
       };
 
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
-        onRecordingComplete(audioFile);
+      mediaRecorderRef.current.onstop = async () => {
+        setProcessing(true);
+        
+        try {
+          const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+          const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
+          
+          await onRecordingComplete(audioFile);
+          setSuccess(true);
+          
+          // Reset success after 2 seconds
+          setTimeout(() => {
+            setSuccess(false);
+          }, 2000);
+        } catch (err) {
+          setError('Failed to process recording. Please try again.');
+          console.error('Recording processing error:', err);
+        } finally {
+          setProcessing(false);
+        }
         
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
@@ -84,6 +103,12 @@ const AudioRecorder = ({ onRecordingComplete }) => {
           </div>
         )}
 
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+            Recording uploaded successfully!
+          </div>
+        )}
+
         <div className="flex flex-col items-center space-y-4">
           {/* Recording indicator */}
           {isRecording && (
@@ -94,24 +119,36 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             </div>
           )}
 
+          {processing && (
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+              <span className="text-purple-600 font-medium">Processing recording...</span>
+            </div>
+          )}
+
           {/* Record/Stop button */}
           <button
             onClick={isRecording ? stopRecording : startRecording}
+            disabled={processing}
             className={`w-20 h-20 rounded-full flex items-center justify-center transition-all
               ${isRecording
                 ? 'bg-red-500 hover:bg-red-600 shadow-lg scale-110'
+                : processing
+                ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-purple-600 hover:bg-purple-700 shadow-md'
               }`}
           >
             {isRecording ? (
               <div className="w-8 h-8 bg-white rounded"></div>
+            ) : processing ? (
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
             ) : (
               <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[20px] border-l-white border-b-[12px] border-b-transparent ml-1"></div>
             )}
           </button>
 
           <p className="text-sm text-gray-500 text-center">
-            {isRecording ? 'Click to stop recording' : 'Click to start recording'}
+            {processing ? 'Processing...' : isRecording ? 'Click to stop recording' : 'Click to start recording'}
           </p>
         </div>
 
