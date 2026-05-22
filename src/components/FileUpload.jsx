@@ -82,19 +82,19 @@ const FileUpload = ({ onUpload }) => {
     switch (status) {
       case 'uploading':
       case 'processing':
-        return 'bg-blue-50 border-blue-200 text-blue-700';
+        return 'bg-blue-950/40 border-blue-500/50 text-blue-300';
       case 'success':
-        return 'bg-green-50 border-green-200 text-green-700';
+        return 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300';
       case 'error':
-        return 'bg-red-50 border-red-200 text-red-700';
+        return 'bg-red-950/40 border-red-500/50 text-red-300';
       default:
         return '';
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Upload Audio File</h2>
+    <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow hover:border-teal-400/60 transition-colors">
+      <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">📁 Upload Audio File</h2>
       
       <div className="space-y-4">
         <div>
@@ -104,32 +104,33 @@ const FileUpload = ({ onUpload }) => {
             accept="audio/*"
             onChange={handleFileChange}
             disabled={uploading}
-            className="block w-full text-sm text-gray-500
+            className="block w-full text-sm text-cyan-300
               file:mr-4 file:py-2 file:px-4
               file:rounded-full file:border-0
               file:text-sm file:font-semibold
-              file:bg-purple-50 file:text-purple-700
-              hover:file:bg-purple-100
-              cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              file:bg-gradient-to-r file:from-cyan-500 file:to-teal-500 file:text-white
+              hover:file:from-cyan-400 hover:file:to-teal-400
+              cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
+              file:shadow-lg file:shadow-cyan-500/50"
           />
         </div>
 
         {file && (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-sm text-gray-600">
-              <span className="font-medium">Selected:</span> {file.name}
+          <div className="glass-aurora border-teal-400/40 rounded-xl p-4">
+            <p className="text-sm text-cyan-200">
+              <span className="font-semibold text-teal-300">✓ Selected:</span> {file.name}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-cyan-300/70 mt-2">
               Size: {(file.size / (1024 * 1024)).toFixed(2)} MB
             </p>
           </div>
         )}
 
         {status !== 'idle' && (
-          <div className={`${getStatusColor()} border px-4 py-3 rounded`}>
+          <div className={`${getStatusColor()} border px-4 py-3 rounded-lg backdrop-blur-sm`}>
             <div className="flex items-center space-x-2">
               {(status === 'uploading' || status === 'processing') && (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-300/30 border-t-blue-400"></div>
               )}
               {status === 'success' && (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -141,15 +142,15 @@ const FileUpload = ({ onUpload }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               )}
-              <span className="text-sm">{getStatusMessage()}</span>
+              <span className="text-sm font-medium">{getStatusMessage()}</span>
             </div>
           </div>
         )}
 
         {uploading && uploadProgress > 0 && (
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-blue-900/30 rounded-full h-3 border border-blue-500/30">
             <div
-              className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-blue-400 to-cyan-400 h-3 rounded-full transition-all duration-300 shadow-lg shadow-cyan-500/50"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
@@ -158,13 +159,13 @@ const FileUpload = ({ onUpload }) => {
         <button
           onClick={handleUpload}
           disabled={!file || uploading}
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors
-            ${!file || uploading
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-purple-600 text-white hover:bg-purple-700'
-            }`}
+          className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${
+            !file || uploading
+              ? 'bg-cyan-500/20 text-cyan-300/50 cursor-not-allowed border border-cyan-500/20'
+              : 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-500/50 aurora-glow'
+          }`}
         >
-          {uploading ? 'Processing...' : 'Upload & Transcribe'}
+          {uploading ? '⏳ Processing...' : '🚀 Upload & Transcribe'}
         </button>
       </div>
     </div>

@@ -254,30 +254,66 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen relative overflow-hidden">
+        <div className="bg-animated"></div>
+        <div className="aurora-accent-1"></div>
+        <div className="aurora-accent-2"></div>
+        <div className="ribbons">
+          <div className="ribbon ribbon-1"></div>
+          <div className="ribbon ribbon-2"></div>
+          <div className="ribbon ribbon-3"></div>
+          <div className="ribbon ribbon-4"></div>
+          <div className="ribbon ribbon-5"></div>
+          <div className="ribbon ribbon-6"></div>
+        </div>
+
+        {/* Antigravity Floating Balls */}
+        <div className="floating-balls">
+          <div className="floating-ball ball-1"></div>
+          <div className="floating-ball ball-2"></div>
+          <div className="floating-ball ball-3"></div>
+          <div className="floating-ball ball-4"></div>
+          <div className="floating-ball ball-5"></div>
+          <div className="floating-ball ball-6"></div>
+          <div className="floating-ball ball-7"></div>
+          <div className="floating-ball ball-8"></div>
+        </div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">EchoScriptAI</h1>
-              <p className="text-gray-600 mt-1">Audio Transcription Service</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowRealTime(!showRealTime)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  showRealTime
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {showRealTime ? 'File Upload' : 'Real-Time'}
-              </button>
-              <div className={`w-3 h-3 rounded-full ${backendConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-              <span className="text-sm text-gray-600">
-                {backendConnected ? 'Connected' : 'Disconnected'}
-              </span>
+      <header className="relative z-10 backdrop-blur-xl border-b border-cyan-500/30 shadow-2xl aurora-glow">
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(10, 14, 39, 0.8) 0%, rgba(26, 31, 58, 0.8) 50%, rgba(42, 31, 74, 0.8) 100%)'
+        }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent font-poppins">EchoScriptAI</h1>
+                <p className="text-teal-300 mt-2 text-lg font-light">Audio Transcription Service</p>
+              </div>
+              <div className="flex items-center space-x-6">
+                <button
+                  onClick={() => setShowRealTime(!showRealTime)}
+                  className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
+                    showRealTime 
+                      ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/50 aurora-glow' 
+                      : 'bg-gradient-to-r from-blue-500/40 to-purple-500/40 text-cyan-200 border border-cyan-400/50 hover:from-blue-500/60 hover:to-purple-500/60'
+                  }`}
+                >
+                  {showRealTime ? '📁 File Upload' : '🎤 Real-Time'}
+                </button>
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    backendConnected 
+                      ? 'bg-gradient-to-r from-emerald-400 to-teal-400 animate-pulse shadow-lg shadow-teal-500/50' 
+                      : 'bg-gradient-to-r from-red-500 to-pink-500 shadow-lg shadow-red-500/50'
+                  }`}></div>
+                  <span className={`text-sm font-medium ${
+                    backendConnected ? 'text-emerald-300' : 'text-red-400'
+                  }`}>
+                    {backendConnected ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -285,16 +321,18 @@ function App() {
 
       {/* Error Banner */}
       {error && (
-        <div className="bg-red-50 border-b border-red-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="relative z-10 backdrop-blur-lg border-b border-red-500/50" style={{
+          background: 'linear-gradient(135deg, rgba(127, 29, 29, 0.3) 0%, rgba(153, 27, 27, 0.2) 100%)'
+        }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center space-x-3">
+              <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm text-red-700">{error}</span>
+              <span className="text-sm text-red-300">{error}</span>
               <button
                 onClick={() => setError('')}
-                className="ml-auto text-red-600 hover:text-red-800"
+                className="ml-auto text-red-400 hover:text-red-300 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -306,10 +344,10 @@ function App() {
       )}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <main className="relative z-5 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Input Methods */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             {showBrowserFallback ? (
               <BrowserTranscription
                 audioFile={fallbackAudioFile}
@@ -329,13 +367,13 @@ function App() {
           </div>
 
           {/* Right Column - Transcriptions */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             <TranscriptionStats transcriptions={transcriptions} />
             {loading ? (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  <p className="text-gray-600">Loading transcriptions...</p>
+              <div className="glass-aurora border-teal-500/40 backdrop-blur-2xl rounded-2xl">
+                <div className="flex flex-col items-center justify-center py-16 space-y-4">
+                  <div className="animate-spin rounded-full h-10 w-10 border-3 border-cyan-500/30 border-t-cyan-400"></div>
+                  <p className="text-cyan-300 font-medium">Loading transcriptions...</p>
                 </div>
               </div>
             ) : (
@@ -350,10 +388,12 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-gray-600 text-sm">
-            Powered by OpenAI Whisper, Deepgram & Browser Web Speech API
+      <footer className="relative z-10 backdrop-blur-xl border-t border-teal-500/30 mt-16" style={{
+        background: 'linear-gradient(135deg, rgba(10, 14, 39, 0.6) 0%, rgba(26, 31, 58, 0.6) 100%)'
+      }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <p className="text-center text-teal-300/80 text-sm font-light">
+            ✨ Powered by OpenAI Whisper, Deepgram & Browser Web Speech API
           </p>
         </div>
       </footer>

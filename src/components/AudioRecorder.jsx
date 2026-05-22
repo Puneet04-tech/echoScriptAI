@@ -41,9 +41,9 @@ const AudioRecorder = ({ onRecordingComplete }) => {
     setInterimTranscript('');
     finalTranscriptRef.current = '';
     
+    let stream;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
       chunksRef.current = [];
 
@@ -54,30 +54,41 @@ const AudioRecorder = ({ onRecordingComplete }) => {
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        setProcessing(true);
-        
-        try {
-          const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-          const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
-          
-          // Pass the audio file and the captured browser real-time transcript
-          await onRecordingComplete(audioFile, finalTranscriptRef.current.trim());
-          setSuccess(true);
-          
-          // Reset success after 2 seconds
-          setTimeout(() => {
-            setSuccess(false);
-          }, 2000);
-        } catch (err) {
-          setError('Failed to process recording. Please try again.');
-          console.error('Recording processing error:', err);
-        } finally {
-          setProcessing(false);
-        }
-        
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
-      };
+    setProcessing(true);
+    try {
+      // Small delay to allow final onresult events to fire
+      await new Promise(resolve => setTimeout(resolve, 300));
+      // Combine any remaining interim transcript with final transcript before sending
+      const combinedTranscript = (finalTranscriptRef.current + ' ' + (interimTranscript || '')).trim();
+      // Create audio blob and file
+      const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+      const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
+      // Pass the audio file and the combined transcript
+      await onRecordingComplete(audioFile, combinedTranscript);
+      setSuccess(true);
+      // Reset success after 2 seconds
+      setTimeout(() => {
+        setSuccess(false);
+      }, 2000);
+    } catch (err) {
+      setError('Failed to process recording. Please try again.');
+      console.error('Recording processing error:', err);
+    } finally {
+      setProcessing(false);
+    }
+    // Stop speech recognition after processing
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (err) {
+        console.error('Error stopping speech recognition:', err);
+      }
+    }
+    // Stop all tracks
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+  };
 
       // Start Web Speech API Recognition simultaneously
       if (isSpeechSupported) {
@@ -159,36 +170,36 @@ const AudioRecorder = ({ onRecordingComplete }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Record Audio</h2>
+    <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow hover:border-teal-400/60 transition-colors">
+      <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">🎙️ Record Audio</h2>
       
-      <div className="space-y-4">
+      <div className="space-y-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
+          <div className="bg-red-950/40 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg backdrop-blur-sm">
+            ✕ {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-            Recording uploaded successfully!
+          <div className="bg-emerald-950/40 border border-emerald-500/50 text-emerald-300 px-4 py-3 rounded-lg backdrop-blur-sm">
+            ✓ Recording uploaded successfully!
           </div>
         )}
 
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-6">
           {/* Recording indicator */}
           {isRecording && (
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-red-600 font-medium">Recording</span>
-              <span className="text-gray-600 font-mono">{formatTime(recordingTime)}</span>
+            <div className="flex items-center space-x-3 px-4 py-2 bg-red-950/40 border border-red-500/50 rounded-lg">
+              <div className="w-2.5 h-2.5 bg-gradient-to-r from-red-400 to-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+              <span className="text-red-300 font-semibold">Recording</span>
+              <span className="text-cyan-300 font-mono text-sm">{formatTime(recordingTime)}</span>
             </div>
           )}
 
           {processing && (
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-              <span className="text-purple-600 font-medium">Processing recording...</span>
+            <div className="flex items-center space-x-3 px-4 py-2 bg-blue-950/40 border border-blue-500/50 rounded-lg">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-300/30 border-t-blue-400"></div>
+              <span className="text-blue-300 font-medium">Processing recording...</span>
             </div>
           )}
 
@@ -196,44 +207,44 @@ const AudioRecorder = ({ onRecordingComplete }) => {
           <button
             onClick={isRecording ? stopRecording : startRecording}
             disabled={processing}
-            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all
-              ${isRecording
-                ? 'bg-red-500 hover:bg-red-600 shadow-lg scale-110'
+            className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 font-bold ${
+              isRecording
+                ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 shadow-lg shadow-red-500/50 scale-110 aurora-glow'
                 : processing
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-purple-600 hover:bg-purple-700 shadow-md'
-              }`}
+                ? 'bg-cyan-500/20 text-cyan-300/50 cursor-not-allowed border border-cyan-500/20'
+                : 'bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 shadow-lg shadow-purple-500/50 aurora-glow'
+            }`}
           >
             {isRecording ? (
               <div className="w-8 h-8 bg-white rounded"></div>
             ) : processing ? (
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-cyan-300/30 border-t-cyan-400"></div>
             ) : (
-              <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[20px] border-l-white border-b-[12px] border-b-transparent ml-1"></div>
+              <span className="text-xl">🎤</span>
             )}
           </button>
 
-          <p className="text-sm text-gray-500 text-center">
-            {processing ? 'Processing...' : isRecording ? 'Click to stop recording' : 'Click to start recording'}
+          <p className="text-sm text-cyan-300/70 text-center font-medium">
+            {processing ? '⏳ Processing...' : isRecording ? '⏹️ Click to stop recording' : '▶️ Click to start recording'}
           </p>
         </div>
 
         {/* Real-time Transcription Preview */}
         {(realTimeTranscript || interimTranscript) && (
-          <div className="bg-purple-50/50 border border-purple-100 rounded-lg p-4 max-h-40 overflow-y-auto">
-            <p className="text-xs text-purple-700 font-semibold mb-1 uppercase tracking-wider">Live Speech Preview:</p>
-            <p className="text-sm text-gray-800 whitespace-pre-wrap">
+          <div className="glass-aurora border-purple-400/50 rounded-xl p-4 max-h-48 overflow-y-auto">
+            <p className="text-xs text-teal-300 font-bold mb-2 uppercase tracking-widest">✨ Live Speech Preview:</p>
+            <p className="text-sm text-cyan-100 whitespace-pre-wrap leading-relaxed">
               {realTimeTranscript}
               {interimTranscript && (
-                <span className="text-purple-600 italic font-medium animate-pulse">{interimTranscript}</span>
+                <span className="text-teal-300 italic font-medium animate-pulse">{interimTranscript}</span>
               )}
             </p>
           </div>
         )}
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-xs text-blue-700">
-            <span className="font-medium">Tip:</span> Speak clearly and close to your microphone for best results.
+        <div className="glass-aurora border-blue-400/50 rounded-xl p-4">
+          <p className="text-xs text-blue-200 leading-relaxed">
+            <span className="font-semibold text-cyan-300">💡 Tip:</span> Speak clearly and close to your microphone for best results.
             {!isSpeechSupported && ' (Note: Live Speech Preview is only supported on Chrome, Edge, and Safari)'}
           </p>
         </div>
