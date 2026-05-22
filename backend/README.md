@@ -14,6 +14,7 @@ Backend server for the EchoScriptAI audio transcription application.
 - Transcription schema for storing audio and text data
 - OpenAI Whisper API integration
 - Deepgram API integration
+- Automatic fallback mechanism (Whisper → Deepgram → Browser STT)
 - Automatic transcription with database storage
 
 ## Installation
@@ -88,8 +89,9 @@ The server will start on port 5000 (or the port specified in .env).
 ### Transcribe Audio File
 - **POST** `/api/upload/transcribe`
 - Content-Type: `multipart/form-data`
-- Body: `audio` (file), `provider` (optional: 'whisper' or 'deepgram'), `language` (optional, default: 'en')
+- Body: `audio` (file), `provider` (optional: 'whisper', 'deepgram', or 'auto' for automatic fallback), `language` (optional, default: 'en')
 - Returns: Transcription record with text and metadata
+- **Fallback Mechanism**: If the selected provider fails, the system automatically tries the next available provider (Whisper → Deepgram). If both fail, the response includes a `useBrowserFallback` flag to trigger browser-based transcription.
 
 ### Get Transcription by ID
 - **GET** `/api/upload/transcription/:id`
@@ -120,6 +122,31 @@ The server will start on port 5000 (or the port specified in .env).
 ## File Size Limit
 
 Maximum file size: 50MB per file
+
+## Transcription Fallback Mechanism
+
+The system implements a three-tier fallback mechanism to ensure reliable transcription:
+
+1. **Primary Provider (OpenAI Whisper)**: Attempts transcription using OpenAI's Whisper API
+2. **Secondary Provider (Deepgram)**: If Whisper fails, automatically falls back to Deepgram's Nova-2 model
+3. **Browser-Based STT (Web Speech API)**: If both cloud providers fail, the frontend offers browser-based transcription using the Web Speech API (no API key required, no billing)
+
+### Provider Selection
+
+- `provider='whisper'`: Uses Whisper, falls back to Deepgram if Whisper fails
+- `provider='deepgram'`: Uses Deepgram, falls back to Whisper if Deepgram fails
+- `provider='auto'`: Tries all available providers in order (default behavior)
+
+### Browser-Based Transcription
+
+When cloud providers fail, the frontend automatically offers browser-based transcription:
+- Uses the Web Speech API built into modern browsers
+- No API key required
+- No billing or costs
+- Works entirely in the browser
+- Plays the audio file and transcribes in real-time
+- Supports 15+ languages
+- Best supported in Chrome, Edge, and Safari
 
 ## Project Structure
 

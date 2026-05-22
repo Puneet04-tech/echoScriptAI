@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import FileUpload from './components/FileUpload';
 import AudioRecorder from './components/AudioRecorder';
 import TranscriptionList from './components/TranscriptionList';
+import BrowserTranscription from './components/BrowserTranscription';
 import { api } from './services/api';
 
 function App() {
@@ -9,6 +10,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [backendConnected, setBackendConnected] = useState(true);
+  const [showBrowserFallback, setShowBrowserFallback] = useState(false);
+  const [fallbackAudioFile, setFallbackAudioFile] = useState(null);
 
   useEffect(() => {
     checkBackendConnection();
@@ -62,7 +65,13 @@ function App() {
       await loadTranscriptions();
     } catch (error) {
       console.error('Upload failed:', error);
-      throw error;
+      // Check if error suggests using browser fallback
+      if (error.message && error.message.includes('All transcription providers failed')) {
+        setFallbackAudioFile(file);
+        setShowBrowserFallback(true);
+      } else {
+        throw error;
+      }
     }
   };
 
@@ -87,7 +96,13 @@ function App() {
       await loadTranscriptions();
     } catch (error) {
       console.error('Recording upload failed:', error);
-      throw error;
+      // Check if error suggests using browser fallback
+      if (error.message && error.message.includes('All transcription providers failed')) {
+        setFallbackAudioFile(file);
+        setShowBrowserFallback(true);
+      } else {
+        throw error;
+      }
     }
   };
 
@@ -99,6 +114,45 @@ function App() {
       console.error('Delete failed:', error);
       setError(error.message || 'Failed to delete transcription');
     }
+  };
+
+  const handleBrowserTranscriptionComplete = async (text, provider) => {
+    try {
+      // Create a manual transcription entry for browser-based transcription
+      // Note: This won't be saved to the backend database
+      const manualTranscription = {
+        _id: `browser-${Date.now()}`,
+        audioFile: {
+          filename: fallbackAudioFile.name,
+          originalName: fallbackAudioFile.name,
+          path: '',
+          mimetype: fallbackAudioFile.type,
+          size: fallbackAudioFile.size,
+        },
+        transcription: text,
+        status: 'completed',
+        language: 'en',
+        duration: 0,
+        error: '',
+        processingTime: 0,
+        provider: provider,
+        useBrowserFallback: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      setTranscriptions(prev => [manualTranscription, ...prev]);
+      setShowBrowserFallback(false);
+      setFallbackAudioFile(null);
+    } catch (error) {
+      console.error('Failed to save browser transcription:', error);
+      setError('Failed to save transcription');
+    }
+  };
+
+  const handleBrowserTranscriptionCancel = () => {
+    setShowBrowserFallback(false);
+    setFallbackAudioFile(null);
   };
 
   return (
@@ -148,8 +202,18 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Input Methods */}
           <div className="space-y-6">
-            <FileUpload onUpload={handleFileUpload} />
-            <AudioRecorder onRecordingComplete={handleRecordingComplete} />
+            {showBrowserFallback ? (
+              <BrowserTranscription
+                audioFile={fallbackAudioFile}
+                onTranscriptionComplete={handleBrowserTranscriptionComplete}
+                onCancel={handleBrowserTranscriptionCancel}
+              />
+            ) : (
+              <>
+                <FileUpload onUpload={handleFileUpload} />
+                <AudioRecorder onRecordingComplete={handleRecordingComplete} />
+              </>
+            )}
           </div>
 
           {/* Right Column - Transcriptions */}
@@ -175,7 +239,7 @@ function App() {
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-gray-600 text-sm">
-            Powered by OpenAI Whisper & Deepgram
+            Powered by OpenAI Whisper, Deepgram & Browser Web Speech API
           </p>
         </div>
       </footer>

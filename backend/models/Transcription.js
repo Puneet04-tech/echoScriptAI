@@ -44,6 +44,13 @@ const transcriptionSchema = new mongoose.Schema({
     default: 'en'
   },
 
+  // STT provider used
+  provider: {
+    type: String,
+    enum: ['whisper', 'deepgram', 'browser'],
+    default: 'whisper'
+  },
+
   // Audio duration in seconds
   duration: {
     type: Number,
@@ -54,6 +61,12 @@ const transcriptionSchema = new mongoose.Schema({
   error: {
     type: String,
     default: ''
+  },
+
+  // Flag to indicate if browser fallback should be used
+  useBrowserFallback: {
+    type: Boolean,
+    default: false
   },
 
   // Processing metadata

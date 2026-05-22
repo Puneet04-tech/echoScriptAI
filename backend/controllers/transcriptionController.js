@@ -27,50 +27,72 @@ class TranscriptionController {
   }
 
   /**
-   * Transcribe audio file using the specified provider
+   * Transcribe audio file using the specified provider with fallback
+   * Fallback order: Whisper → Deepgram → Error (for browser STT fallback)
    * @param {string} filePath - Path to the audio file
-   * @param {string} provider - STT provider ('whisper' or 'deepgram')
+   * @param {string} provider - STT provider ('whisper', 'deepgram', or 'auto' for fallback)
    * @param {string} languageCode - Language code
    * @returns {Promise<Object>} Transcription result
    */
   async transcribe(filePath, provider = null, languageCode = 'en') {
     const selectedProvider = provider || this.defaultProvider;
+    const providersToTry = [];
 
-    try {
-      let result;
+    // Determine which providers to try based on selection
+    if (selectedProvider.toLowerCase() === 'auto') {
+      // Try all available providers in order
+      if (this.whisperService) providersToTry.push('whisper');
+      if (this.deepgramService) providersToTry.push('deepgram');
+    } else if (selectedProvider.toLowerCase() === 'whisper') {
+      providersToTry.push('whisper');
+      if (this.deepgramService) providersToTry.push('deepgram'); // Fallback
+    } else if (selectedProvider.toLowerCase() === 'deepgram') {
+      providersToTry.push('deepgram');
+      if (this.whisperService) providersToTry.push('whisper'); // Fallback
+    } else {
+      throw new Error(`Unsupported provider: ${selectedProvider}. Use 'whisper', 'deepgram', or 'auto'.`);
+    }
 
-      switch (selectedProvider.toLowerCase()) {
-        case 'whisper':
+    // Try each provider in order
+    for (const currentProvider of providersToTry) {
+      try {
+        let result;
+        
+        if (currentProvider === 'whisper') {
           if (!this.whisperService) {
-            throw new Error('Whisper service is not configured. Please set OPENAI_API_KEY.');
+            console.warn('Whisper service not configured, skipping...');
+            continue;
           }
-          // Read file as buffer for Whisper
+          console.log('Attempting transcription with Whisper...');
           const audioBuffer = fs.readFileSync(filePath);
           result = await this.whisperService.transcribe(audioBuffer, languageCode);
-          break;
-        case 'deepgram':
+        } else if (currentProvider === 'deepgram') {
           if (!this.deepgramService) {
-            throw new Error('Deepgram service is not configured. Please set DEEPGRAM_API_KEY.');
+            console.warn('Deepgram service not configured, skipping...');
+            continue;
           }
-          // Read file as buffer for Deepgram
+          console.log('Attempting transcription with Deepgram...');
           const dgBuffer = fs.readFileSync(filePath);
           result = await this.deepgramService.transcribe(dgBuffer, languageCode);
-          break;
-        default:
-          throw new Error(`Unsupported provider: ${selectedProvider}. Use 'whisper' or 'deepgram'.`);
-      }
+        }
 
-      return {
-        success: true,
-        transcription: result,
-      };
-    } catch (error) {
-      console.error('Transcription error:', error);
-      return {
-        success: false,
-        error: error.message,
-      };
+        return {
+          success: true,
+          transcription: result,
+          provider: currentProvider,
+        };
+      } catch (error) {
+        console.error(`${currentProvider} transcription failed:`, error.message);
+        // Continue to next provider
+      }
     }
+
+    // All providers failed
+    return {
+      success: false,
+      error: 'All transcription providers failed. Please use browser-based transcription as fallback.',
+      useBrowserFallback: true,
+    };
   }
 
   /**
@@ -105,6 +127,7 @@ class TranscriptionController {
         transcription.transcription = result.transcription.text;
         transcription.status = 'completed';
         transcription.processingTime = result.transcription.processingTime || 0;
+        transcription.provider = result.provider || provider;
         
         // Update duration if available
         if (result.transcription.duration) {
@@ -113,6 +136,7 @@ class TranscriptionController {
       } else {
         transcription.status = 'failed';
         transcription.error = result.error;
+        transcription.useBrowserFallback = result.useBrowserFallback || false;
       }
 
       await transcription.save();
