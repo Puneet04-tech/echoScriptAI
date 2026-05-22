@@ -12,8 +12,8 @@ Backend server for the EchoScriptAI audio transcription application.
 - CORS enabled for frontend integration
 - Environment variable configuration
 - Transcription schema for storing audio and text data
-- Google Cloud Speech-to-Text integration
-- Mozilla DeepSpeech integration
+- OpenAI Whisper API integration
+- Deepgram API integration
 - Automatic transcription with database storage
 
 ## Installation
@@ -29,16 +29,15 @@ npm install
 
 3. Set up Speech-to-Text provider (choose one or both):
 
-   **Option A: Google Cloud Speech-to-Text**
-   - Create a Google Cloud project
-   - Enable Speech-to-Text API
-   - Create a service account and download JSON key
-   - Set `GOOGLE_APPLICATION_CREDENTIALS` in .env
+   **Option A: OpenAI Whisper**
+   - Create an OpenAI account at https://platform.openai.com/
+   - Generate an API key from https://platform.openai.com/api-keys
+   - Set `OPENAI_API_KEY` in .env
 
-   **Option B: Mozilla DeepSpeech**
-   - Install DeepSpeech: `npm install deepspeech`
-   - Download pre-trained models from [DeepSpeech releases](https://github.com/mozilla/DeepSpeech/releases)
-   - Set `DEEPSPEECH_MODEL_PATH` in .env
+   **Option B: Deepgram**
+   - Create a Deepgram account at https://console.deepgram.com/
+   - Generate an API key from the console
+   - Set `DEEPGRAM_API_KEY` in .env
 
 4. Create a `.env` file in the backend directory:
 ```bash
@@ -49,8 +48,9 @@ cp .env.example .env
 ```
 PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/echoscriptai?retryWrites=true&w=majority
-DEFAULT_STT_PROVIDER=google
-GOOGLE_APPLICATION_CREDENTIALS=path/to/your/service-account.json
+DEFAULT_STT_PROVIDER=whisper
+OPENAI_API_KEY=your_openai_api_key_here
+DEEPGRAM_API_KEY=your_deepgram_api_key_here
 ```
 
 ## Usage
@@ -88,7 +88,7 @@ The server will start on port 5000 (or the port specified in .env).
 ### Transcribe Audio File
 - **POST** `/api/upload/transcribe`
 - Content-Type: `multipart/form-data`
-- Body: `audio` (file), `provider` (optional: 'google' or 'deepspeech'), `language` (optional, default: 'en-US')
+- Body: `audio` (file), `provider` (optional: 'whisper' or 'deepgram'), `language` (optional, default: 'en')
 - Returns: Transcription record with text and metadata
 
 ### Get Transcription by ID
@@ -132,8 +132,8 @@ backend/
 ├── controllers/
 │   └── transcriptionController.js # Transcription logic
 ├── services/
-│   ├── googleSpeech.js   # Google Speech-to-Text service
-│   └── deepSpeech.js     # Mozilla DeepSpeech service
+│   ├── whisper.js         # OpenAI Whisper service
+│   └── deepgram.js        # Deepgram service
 ├── routes/
 │   └── upload.js         # Upload and transcription routes
 ├── uploads/              # Temporary file storage
@@ -151,12 +151,9 @@ backend/
 - multer: File upload handling
 - cors: Cross-origin resource sharing
 - dotenv: Environment variable management
-- @google-cloud/speech: Google Cloud Speech-to-Text API
+- openai: OpenAI API client
+- @deepgram/sdk: Deepgram API client
 - nodemon: Development server auto-reload (dev dependency)
-
-## Optional Dependencies
-
-- deepspeech: Mozilla DeepSpeech (install separately if using local transcription)
 
 ## Next Steps
 

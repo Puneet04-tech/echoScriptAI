@@ -1,43 +1,69 @@
-const GoogleSpeechService = require('../services/googleSpeech');
-const DeepSpeechService = require('../services/deepSpeech');
+const WhisperService = require('../services/whisper');
+const DeepgramService = require('../services/deepgram');
 const Transcription = require('../models/Transcription');
+const fs = require('fs');
 
 /**
  * Transcription Controller
- * Manages speech-to-text transcription using multiple providers
+ * Manages speech-to-text transcription using OpenAI Whisper and Deepgram
  */
 class TranscriptionController {
   constructor() {
-    this.googleService = new GoogleSpeechService();
-    this.deepSpeechService = new DeepSpeechService();
-    this.defaultProvider = process.env.DEFAULT_STT_PROVIDER || 'google';
+    try {
+      this.whisperService = new WhisperService();
+    } catch (error) {
+      console.warn('Whisper service not configured:', error.message);
+      this.whisperService = null;
+    }
+
+    try {
+      this.deepgramService = new DeepgramService();
+    } catch (error) {
+      console.warn('Deepgram service not configured:', error.message);
+      this.deepgramService = null;
+    }
+
+    this.defaultProvider = process.env.DEFAULT_STT_PROVIDER || 'whisper';
   }
 
   /**
    * Transcribe audio file using the specified provider
    * @param {string} filePath - Path to the audio file
-   * @param {string} provider - STT provider ('google' or 'deepspeech')
+   * @param {string} provider - STT provider ('whisper' or 'deepgram')
    * @param {string} languageCode - Language code
    * @returns {Promise<Object>} Transcription result
    */
-  async transcribe(filePath, provider = null, languageCode = 'en-US') {
+  async transcribe(filePath, provider = null, languageCode = 'en') {
     const selectedProvider = provider || this.defaultProvider;
 
     try {
       let result;
 
       switch (selectedProvider.toLowerCase()) {
-        case 'google':
-          result = await this.googleService.transcribe(filePath, languageCode);
+        case 'whisper':
+          if (!this.whisperService) {
+            throw new Error('Whisper service is not configured. Please set OPENAI_API_KEY.');
+          }
+          // Read file as buffer for Whisper
+          const audioBuffer = fs.readFileSync(filePath);
+          result = await this.whisperService.transcribe(audioBuffer, languageCode);
           break;
-        case 'deepspeech':
-          result = await this.deepSpeechService.transcribe(filePath, languageCode);
+        case 'deepgram':
+          if (!this.deepgramService) {
+            throw new Error('Deepgram service is not configured. Please set DEEPGRAM_API_KEY.');
+          }
+          // Read file as buffer for Deepgram
+          const dgBuffer = fs.readFileSync(filePath);
+          result = await this.deepgramService.transcribe(dgBuffer, languageCode);
           break;
         default:
-          throw new Error(`Unsupported provider: ${selectedProvider}`);
+          throw new Error(`Unsupported provider: ${selectedProvider}. Use 'whisper' or 'deepgram'.`);
       }
 
-      return result;
+      return {
+        success: true,
+        transcription: result,
+      };
     } catch (error) {
       console.error('Transcription error:', error);
       return {
@@ -54,7 +80,7 @@ class TranscriptionController {
    * @param {string} languageCode - Language code
    * @returns {Promise<Object>} Transcription record
    */
-  async transcribeAndSave(fileData, provider = null, languageCode = 'en-US') {
+  async transcribeAndSave(fileData, provider = null, languageCode = 'en') {
     try {
       // Create transcription record with pending status
       const transcription = new Transcription({
@@ -81,9 +107,8 @@ class TranscriptionController {
         transcription.processingTime = result.transcription.processingTime || 0;
         
         // Update duration if available
-        if (result.transcription.words && result.transcription.words.length > 0) {
-          const lastWord = result.transcription.words[result.transcription.words.length - 1];
-          transcription.duration = lastWord.endTime ? lastWord.endTime.seconds : 0;
+        if (result.transcription.duration) {
+          transcription.duration = result.transcription.duration;
         }
       } else {
         transcription.status = 'failed';
@@ -141,7 +166,6 @@ class TranscriptionController {
       }
 
       // Delete audio file
-      const fs = require('fs');
       if (fs.existsSync(transcription.audioFile.path)) {
         fs.unlinkSync(transcription.audioFile.path);
       }
@@ -161,14 +185,15 @@ class TranscriptionController {
   getProviderStatus() {
     return {
       default: this.defaultProvider,
-      google: {
-        available: true,
-        configured: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      whisper: this.whisperService ? this.whisperService.getStatus() : {
+        provider: 'OpenAI Whisper',
+        configured: false,
+        error: 'OPENAI_API_KEY not set',
       },
-      deepspeech: {
-        available: true,
-        configured: this.deepSpeechService.isConfigured(),
-        modelInfo: this.deepSpeechService.getModelInfo(),
+      deepgram: this.deepgramService ? this.deepgramService.getStatus() : {
+        provider: 'Deepgram',
+        configured: false,
+        error: 'DEEPGRAM_API_KEY not set',
       },
     };
   }
