@@ -2,8 +2,10 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const TranscriptionController = require('../controllers/transcriptionController');
 
 const router = express.Router();
+const transcriptionController = new TranscriptionController();
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -100,6 +102,89 @@ router.post('/multiple', upload.array('audios', 5), (req, res) => {
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ message: 'Error uploading files' });
+  }
+});
+
+// Route to transcribe uploaded audio file
+router.post('/transcribe', upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const provider = req.body.provider || null;
+    const languageCode = req.body.language || 'en-US';
+
+    const transcription = await transcriptionController.transcribeAndSave(
+      req.file,
+      provider,
+      languageCode
+    );
+
+    res.json({
+      message: 'Transcription completed',
+      transcription: transcription
+    });
+  } catch (error) {
+    console.error('Transcription error:', error);
+    res.status(500).json({ message: 'Error transcribing file', error: error.message });
+  }
+});
+
+// Route to get transcription by ID
+router.get('/transcription/:id', async (req, res) => {
+  try {
+    const transcription = await transcriptionController.getTranscriptionById(req.params.id);
+    
+    if (!transcription) {
+      return res.status(404).json({ message: 'Transcription not found' });
+    }
+
+    res.json(transcription);
+  } catch (error) {
+    console.error('Get transcription error:', error);
+    res.status(500).json({ message: 'Error retrieving transcription' });
+  }
+});
+
+// Route to get all transcriptions
+router.get('/transcriptions', async (req, res) => {
+  try {
+    const filters = {};
+    if (req.query.status) {
+      filters.status = req.query.status;
+    }
+    if (req.query.language) {
+      filters.language = req.query.language;
+    }
+
+    const transcriptions = await transcriptionController.getAllTranscriptions(filters);
+    res.json(transcriptions);
+  } catch (error) {
+    console.error('Get transcriptions error:', error);
+    res.status(500).json({ message: 'Error retrieving transcriptions' });
+  }
+});
+
+// Route to delete transcription
+router.delete('/transcription/:id', async (req, res) => {
+  try {
+    const transcription = await transcriptionController.deleteTranscription(req.params.id);
+    res.json({ message: 'Transcription deleted', transcription });
+  } catch (error) {
+    console.error('Delete transcription error:', error);
+    res.status(500).json({ message: 'Error deleting transcription' });
+  }
+});
+
+// Route to get provider status
+router.get('/provider-status', (req, res) => {
+  try {
+    const status = transcriptionController.getProviderStatus();
+    res.json(status);
+  } catch (error) {
+    console.error('Get provider status error:', error);
+    res.status(500).json({ message: 'Error retrieving provider status' });
   }
 });
 
