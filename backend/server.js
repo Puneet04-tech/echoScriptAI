@@ -5,7 +5,7 @@ dotenv.config({ path: require('path').resolve(__dirname, '.env') });
 
 const express = require('express');
 const cors = require('cors');
-const uploadRoutes = require('./routes/upload');
+const authRoutes = require('./routes/auth');
 const connectDB = require('./config/db');
 
 // Connect to MongoDB

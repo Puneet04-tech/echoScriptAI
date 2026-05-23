@@ -1,10 +1,12 @@
 const express = require('express');
+const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const TranscriptionController = require('../controllers/transcriptionController');
 
-const router = express.Router();
+router.use(auth);
+
 const transcriptionController = new TranscriptionController();
 
 // Ensure uploads directory exists
