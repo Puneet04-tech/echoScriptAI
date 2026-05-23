@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import ErrorBanner from './components/ErrorBanner';
+
+const clearError = () => setError('');
 import FileUpload from './components/FileUpload';
 import AudioRecorder from './components/AudioRecorder';
 import TranscriptionList from './components/TranscriptionList';
@@ -50,15 +53,15 @@ function App() {
   const handleFileUpload = async (file, onProgress) => {
     try {
       const result = await api.transcribeAudio(file);
-      
+
       // Start polling for transcription status
       if (result.transcription && result.transcription._id) {
         const finalTranscription = await api.pollTranscriptionStatus(
           result.transcription._id,
           (updatedTranscription) => {
             // Update the specific transcription in the list
-            setTranscriptions(prev => 
-              prev.map(t => 
+            setTranscriptions(prev =>
+              prev.map(t =>
                 t._id === updatedTranscription._id ? updatedTranscription : t
               )
             );
@@ -71,7 +74,7 @@ function App() {
           setShowBrowserFallback(true);
         }
       }
-      
+
       await loadTranscriptions();
     } catch (error) {
       console.error('Upload failed:', error);
@@ -89,14 +92,14 @@ function App() {
   const handleRecordingComplete = async (file, browserTranscript) => {
     try {
       const result = await api.transcribeAudio(file);
-      
+
       // Start polling for transcription status
       if (result.transcription && result.transcription._id) {
         const finalTranscription = await api.pollTranscriptionStatus(
           result.transcription._id,
           (updatedTranscription) => {
-            setTranscriptions(prev => 
-              prev.map(t => 
+            setTranscriptions(prev =>
+              prev.map(t =>
                 t._id === updatedTranscription._id ? updatedTranscription : t
               )
             );
@@ -121,7 +124,7 @@ function App() {
           }
         }
       }
-      
+
       await loadTranscriptions();
     } catch (error) {
       console.error('Recording upload failed:', error);
@@ -205,7 +208,7 @@ function App() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
-        
+
         setTranscriptions(prev => [manualTranscription, ...prev]);
       }
       setShowBrowserFallback(false);
@@ -225,8 +228,8 @@ function App() {
 
   const handleTranscriptionUpdate = (id, newText) => {
     // Update local state for browser-based transcriptions
-    setTranscriptions(prev => 
-      prev.map(t => 
+    setTranscriptions(prev =>
+      prev.map(t =>
         t._id === id ? { ...t, transcription: newText } : t
       )
     );
@@ -249,35 +252,35 @@ function App() {
       createdAt: new Date().toISOString(),
       useBrowserFallback: true,
     };
-    
+
     setTranscriptions(prev => [newTranscription, ...prev]);
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-        <div className="bg-animated"></div>
-        <div className="aurora-accent-1"></div>
-        <div className="aurora-accent-2"></div>
-        <div className="ribbons">
-          <div className="ribbon ribbon-1"></div>
-          <div className="ribbon ribbon-2"></div>
-          <div className="ribbon ribbon-3"></div>
-          <div className="ribbon ribbon-4"></div>
-          <div className="ribbon ribbon-5"></div>
-          <div className="ribbon ribbon-6"></div>
-        </div>
+      <div className="bg-animated"></div>
+      <div className="aurora-accent-1"></div>
+      <div className="aurora-accent-2"></div>
+      <div className="ribbons">
+        <div className="ribbon ribbon-1"></div>
+        <div className="ribbon ribbon-2"></div>
+        <div className="ribbon ribbon-3"></div>
+        <div className="ribbon ribbon-4"></div>
+        <div className="ribbon ribbon-5"></div>
+        <div className="ribbon ribbon-6"></div>
+      </div>
 
-        {/* Antigravity Floating Balls */}
-        <div className="floating-balls">
-          <div className="floating-ball ball-1"></div>
-          <div className="floating-ball ball-2"></div>
-          <div className="floating-ball ball-3"></div>
-          <div className="floating-ball ball-4"></div>
-          <div className="floating-ball ball-5"></div>
-          <div className="floating-ball ball-6"></div>
-          <div className="floating-ball ball-7"></div>
-          <div className="floating-ball ball-8"></div>
-        </div>
+      {/* Antigravity Floating Balls */}
+      <div className="floating-balls">
+        <div className="floating-ball ball-1"></div>
+        <div className="floating-ball ball-2"></div>
+        <div className="floating-ball ball-3"></div>
+        <div className="floating-ball ball-4"></div>
+        <div className="floating-ball ball-5"></div>
+        <div className="floating-ball ball-6"></div>
+        <div className="floating-ball ball-7"></div>
+        <div className="floating-ball ball-8"></div>
+      </div>
 
       {/* Header */}
       <header className="relative z-10 backdrop-blur-xl border-b border-cyan-500/30 shadow-2xl aurora-glow">
@@ -293,23 +296,20 @@ function App() {
               <div className="flex items-center space-x-6">
                 <button
                   onClick={() => setShowRealTime(!showRealTime)}
-                  className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
-                    showRealTime 
-                      ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/50 aurora-glow' 
+                  className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${showRealTime
+                      ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/50 aurora-glow'
                       : 'bg-gradient-to-r from-blue-500/40 to-purple-500/40 text-cyan-200 border border-cyan-400/50 hover:from-blue-500/60 hover:to-purple-500/60'
-                  }`}
+                    }`}
                 >
                   {showRealTime ? '📁 File Upload' : '🎤 Real-Time'}
                 </button>
                 <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    backendConnected 
-                      ? 'bg-gradient-to-r from-emerald-400 to-teal-400 animate-pulse shadow-lg shadow-teal-500/50' 
+                  <div className={`w-3 h-3 rounded-full ${backendConnected
+                      ? 'bg-gradient-to-r from-emerald-400 to-teal-400 animate-pulse shadow-lg shadow-teal-500/50'
                       : 'bg-gradient-to-r from-red-500 to-pink-500 shadow-lg shadow-red-500/50'
-                  }`}></div>
-                  <span className={`text-sm font-medium ${
-                    backendConnected ? 'text-emerald-300' : 'text-red-400'
-                  }`}>
+                    }`}></div>
+                  <span className={`text-sm font-medium ${backendConnected ? 'text-emerald-300' : 'text-red-400'
+                    }`}>
                     {backendConnected ? 'Connected' : 'Disconnected'}
                   </span>
                 </div>
