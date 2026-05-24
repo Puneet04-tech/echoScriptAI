@@ -1,11 +1,12 @@
 const express = require('express');
+const router = express.Router();
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const TranscriptionController = require('../controllers/transcriptionController');
 
-router.use(auth);
+// router.use(auth); // Auth applied per route
 
 const transcriptionController = new TranscriptionController();
 

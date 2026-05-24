@@ -6,6 +6,7 @@ dotenv.config({ path: require('path').resolve(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const uploadRoutes = require('./routes/upload');
 const connectDB = require('./config/db');
 
 // Connect to MongoDB
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Health check route
