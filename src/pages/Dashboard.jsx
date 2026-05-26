@@ -36,9 +36,21 @@ export default function Dashboard({ user, onLogout }) {
   const loadTranscriptions = async () => {
     try {
       setLoading(true);
-      // TODO: Update API to filter transcriptions by userId
       const data = await api.getTranscriptions();
-      // For now, all transcriptions are loaded. In production, filter by user.id
+      
+      // Debug logging
+      console.log('Fetched transcriptions:', data);
+      if (data && data.length > 0) {
+        console.log('First transcription:', {
+          id: data[0]._id,
+          status: data[0].status,
+          hasText: !!data[0].transcription,
+          textLength: data[0].transcription?.length || 0,
+          provider: data[0].provider,
+          error: data[0].error
+        });
+      }
+      
       setTranscriptions(data);
       setError('');
     } catch (error) {
@@ -209,12 +221,24 @@ export default function Dashboard({ user, onLogout }) {
     setFallbackTranscriptionId(null);
   };
 
-  const handleTranscriptionUpdate = (id, newText) => {
-    setTranscriptions(prev =>
-      prev.map(t =>
-        t._id === id ? { ...t, transcription: newText } : t
-      )
-    );
+  const handleTranscriptionUpdate = async (id, newText) => {
+    try {
+      // Update in database first
+      await api.updateTranscription(id, { transcription: newText });
+      
+      // Then update local state
+      setTranscriptions(prev =>
+        prev.map(t =>
+          t._id === id ? { ...t, transcription: newText } : t
+        )
+      );
+      
+      // Reload to ensure sync
+      await loadTranscriptions();
+    } catch (error) {
+      console.error('Update failed:', error);
+      setError('Failed to save transcription');
+    }
   };
 
   const handleRetryBrowserFallback = (transcription) => {

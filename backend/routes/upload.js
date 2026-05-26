@@ -211,9 +211,9 @@ router.put('/transcription/:id', auth, async (req, res) => {
       return res.status(403).json({ message: 'Forbidden: You do not own this transcription' });
     }
 
-    const { transcriptionText, status, provider } = req.body;
+    const { transcription: newTranscriptionText, transcriptionText, status, provider } = req.body;
     const updated = await transcriptionController.updateTranscription(req.params.id, {
-      transcription: transcriptionText || transcription.transcription,
+      transcription: newTranscriptionText || transcriptionText || transcription.transcription,
       status: status || 'completed',
       provider: provider || 'browser'
     });

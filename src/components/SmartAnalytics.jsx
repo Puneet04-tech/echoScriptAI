@@ -6,21 +6,33 @@ export const SmartAnalytics = ({ transcription }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Calculate analytics locally when component mounts or transcription changes
   useEffect(() => {
-    if (transcription && transcription.transcription) {
-      loadAnalytics();
+    if (transcription && transcription.transcription && transcription.transcription.trim()) {
+      calculateAnalytics();
     }
   }, [transcription]);
 
-  const loadAnalytics = async () => {
+  const calculateAnalytics = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await api.aiAnalytics(
-        transcription.transcription,
-        transcription.duration
-      );
-      setAnalytics(response.analytics);
+      // Try to get analytics from backend
+      try {
+        const response = await api.aiAnalytics(
+          transcription.transcription,
+          transcription.duration
+        );
+        setAnalytics(response.analytics);
+      } catch (err) {
+        console.warn('Backend analytics failed, calculating locally:', err);
+        // Fallback to local calculation
+        const localAnalytics = generateLocalAnalytics(
+          transcription.transcription,
+          transcription.duration
+        );
+        setAnalytics(localAnalytics);
+      }
     } catch (err) {
       setError('Failed to load analytics');
       console.error(err);
@@ -29,8 +41,70 @@ export const SmartAnalytics = ({ transcription }) => {
     }
   };
 
-  if (!transcription || !transcription.transcription) {
-    return null;
+  const generateLocalAnalytics = (text, duration) => {
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const wordCount = words.length;
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentenceCount = sentences.length;
+
+    // Calculate words per minute
+    let wpm = 0;
+    if (duration && duration > 0) {
+      wpm = Math.round((wordCount / duration) * 60);
+    }
+
+    // Extract key terms (most frequent words, excluding common stop words)
+    const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought', 'used', 'it', 'its', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'our', 'their', 'mine', 'yours', 'hers', 'ours', 'theirs'];
+    const wordFrequency = {};
+    words.forEach(word => {
+      const lower = word.toLowerCase().replace(/[^a-z]/g, '');
+      if (lower.length > 2 && !stopWords.includes(lower)) {
+        wordFrequency[lower] = (wordFrequency[lower] || 0) + 1;
+      }
+    });
+
+    const keyTerms = Object.entries(wordFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([word, count]) => ({ word, count }));
+
+    // Simple sentiment analysis
+    const positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic', 'awesome', 'positive', 'success', 'happy', 'love', 'like', 'best', 'better', 'improve', 'agree', 'yes', 'right', 'perfect'];
+    const negativeWords = ['bad', 'terrible', 'awful', 'horrible', 'poor', 'negative', 'failure', 'unhappy', 'hate', 'dislike', 'worst', 'worse', 'decline', 'disagree', 'no', 'wrong', 'problem', 'issue', 'concern'];
+
+    let positiveCount = 0;
+    let negativeCount = 0;
+
+    words.forEach(word => {
+      const lower = word.toLowerCase();
+      if (positiveWords.some(pw => lower.includes(pw))) positiveCount++;
+      if (negativeWords.some(nw => lower.includes(nw))) negativeCount++;
+    });
+
+    const sentiment = positiveCount > negativeCount ? 'positive' : negativeCount > positiveCount ? 'negative' : 'neutral';
+    const sentimentScore = Math.round(((positiveCount - negativeCount) / Math.max(wordCount, 1)) * 100);
+
+    return {
+      wordCount,
+      sentenceCount,
+      wordsPerMinute: wpm,
+      keyTerms,
+      sentiment: {
+        overall: sentiment,
+        score: sentimentScore,
+        positiveWords: positiveCount,
+        negativeWords: negativeCount
+      },
+      duration: duration || 0
+    };
+  };
+
+  if (!transcription || !transcription.transcription || !transcription.transcription.trim()) {
+    return (
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-cyan-500/30 mt-6">
+        <p className="text-cyan-400 text-center text-sm">No transcription text to analyze</p>
+      </div>
+    );
   }
 
   if (loading) {
