@@ -18,7 +18,26 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 // Configure CORS to allow requests from deployed frontend
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:5173'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Get allowed origins from environment variable
+    const allowedOrigins = process.env.CORS_ORIGIN 
+      ? process.env.CORS_ORIGIN.split(',').map(url => url.trim().replace(/\/$/, '')) // Remove trailing slashes
+      : ['http://localhost:3000', 'http://localhost:5173'];
+
+    // Remove trailing slash from origin if present
+    const normalizedOrigin = origin.replace(/\/$/, '');
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
