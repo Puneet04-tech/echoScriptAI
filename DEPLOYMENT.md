@@ -55,27 +55,132 @@ This guide explains how to deploy EchoScriptAI to Render.
 
 ## Step 3: Deploy Frontend on Vercel
 
+For detailed Vercel deployment instructions, see [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md).
+
+Quick Start:
 1. Go to [Vercel](https://vercel.com)
 2. Click "New Project"
 3. Import your GitHub repository
 4. Configure:
-   - **Framework Preset**: Create React App
+   - **Framework Preset**: Vite
    - **Root Directory**: `./`
    - **Build Command**: `npm run build`
-   - **Output Directory**: `build`
+   - **Output Directory**: `dist`
 5. Add Environment Variables:
    - `REACT_APP_API_URL`: Your backend URL (e.g., https://echoscriptai-backend.onrender.com/api/upload)
 6. Click "Deploy"
 
-## Step 4: Update CORS Settings
+## Step 4: Ensure Frontend and Backend Work Seamlessly Together
 
-After both deployments are complete:
+### CORS Configuration
 
-1. Go to your backend service on Render
-2. Navigate to "Environment"
-3. Update `CORS_ORIGIN` to your frontend URL
-4. Click "Save Changes"
-5. Render will automatically redeploy
+1. After frontend deployment, get your Vercel URL (e.g., https://echoscriptai-frontend.vercel.app)
+2. Go to your backend service on Render
+3. Navigate to "Environment"
+4. Update `CORS_ORIGIN` to your frontend URL
+5. Click "Save Changes"
+6. Render will automatically redeploy
+
+### Verify Connection
+
+1. Open your frontend URL in browser
+2. Open browser DevTools (F12)
+3. Go to Network tab
+4. Try to load transcriptions
+5. Check that API requests succeed (status 200)
+6. If you see CORS errors, verify:
+   - `CORS_ORIGIN` matches frontend URL exactly
+   - Backend is running
+   - No typos in URLs
+
+### Environment Variables Sync
+
+Ensure these variables match:
+
+**Frontend (Vercel):**
+- `REACT_APP_API_URL` = Backend URL + `/api/upload`
+
+**Backend (Render):**
+- `CORS_ORIGIN` = Frontend URL (without path)
+
+Example:
+- Frontend: `https://echoscriptai.vercel.app`
+- Backend: `https://echoscriptai-backend.onrender.com`
+- Frontend REACT_APP_API_URL: `https://echoscriptai-backend.onrender.com/api/upload`
+- Backend CORS_ORIGIN: `https://echoscriptai.vercel.app`
+
+### Test Full Flow
+
+1. **Authentication**
+   - Click "Login" on frontend
+   - Register a new account
+   - Verify token is stored in localStorage
+   - Check that "Logout" button appears
+
+2. **File Upload**
+   - Upload an audio file
+   - Verify upload progress shows
+   - Check that transcription appears in list
+   - Verify provider badge shows (whisper/deepgram/browser)
+
+3. **Real-Time Transcription**
+   - Click "Real-Time" button
+   - Click "Start Listening"
+   - Speak into microphone
+   - Verify words appear in real-time
+   - Click "Stop Listening"
+   - Verify transcription is saved to list
+
+4. **Error Handling**
+   - Disconnect backend temporarily
+   - Try to upload file
+   - Verify browser fallback appears
+   - Verify error messages are clear
+
+### Debugging Tips
+
+**Check Backend Health:**
+```bash
+curl https://echoscriptai-backend.onrender.com/
+```
+Should return: `{"message":"EchoScriptAI Backend Server is running!"}`
+
+**Check Provider Status:**
+```bash
+curl https://echoscriptai-backend.onrender.com/api/upload/provider-status
+```
+
+**Check Frontend Build:**
+- Go to Vercel dashboard
+- Click on your project
+- Check "Deployments" tab
+- Verify latest deployment succeeded
+
+**View Logs:**
+- Backend: Render Dashboard → Logs
+- Frontend: Vercel Dashboard → Logs
+
+### Common Issues
+
+**CORS Errors:**
+- Ensure `CORS_ORIGIN` includes exact frontend URL
+- Check for trailing slashes
+- Verify backend is not sleeping (Render free tier)
+
+**API Timeouts:**
+- Render free tier sleeps after 15min inactivity
+- First request may take 30-60 seconds to wake up
+- Consider upgrading to avoid sleep
+
+**Authentication Fails:**
+- Verify `JWT_SECRET` is set in backend
+- Check MongoDB connection
+- Ensure User collection exists
+
+**File Upload Fails:**
+- Check file size (max 50MB)
+- Verify multer configuration
+- Check backend logs for errors
 
 ## Step 5: Test the Deployment
 
