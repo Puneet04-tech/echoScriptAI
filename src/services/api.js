@@ -134,4 +134,25 @@ export const api = {
 
     return poll();
   },
+
+  // AI Text Utilities
+  async aiSummary(text) {
+    const response = await axiosInstance.post('/ai/summary', { text });
+    return response.data;
+  },
+
+  async aiActionItems(text) {
+    const response = await axiosInstance.post('/ai/action-items', { text });
+    return response.data;
+  },
+
+  async aiRemoveFillers(text) {
+    const response = await axiosInstance.post('/ai/remove-fillers', { text });
+    return response.data;
+  },
+
+  async aiAnalytics(text, duration) {
+    const response = await axiosInstance.post('/ai/analytics', { text, duration });
+    return response.data;
+  },
 };

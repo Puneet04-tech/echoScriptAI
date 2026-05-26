@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { AudioPlayer } from './AudioPlayer';
+import { AITextUtilities } from './AITextUtilities';
+import { SmartAnalytics } from './SmartAnalytics';
 
 const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
   const [expandedId, setExpandedId] = useState(null);
@@ -8,6 +11,7 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
   const [providerFilter, setProviderFilter] = useState('all');
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
+  const [currentTime, setCurrentTime] = useState(0);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -387,6 +391,32 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
                       ⏱️ Processing time: {transcription.processingTime}ms
                     </p>
                   )}
+                </div>
+              )}
+
+              {/* Audio Player and AI Features - Only show when expanded */}
+              {isExpanded && transcription.status === 'completed' && transcription.transcription && (
+                <div className="mt-4 space-y-4">
+                  {/* Audio Player */}
+                  {transcription.audioFile.path && (
+                    <AudioPlayer
+                      audioUrl={transcription.audioFile.path}
+                      currentTime={currentTime}
+                      onTimeUpdate={setCurrentTime}
+                      onSeek={(time) => setCurrentTime(time)}
+                    />
+                  )}
+
+                  {/* AI Text Utilities */}
+                  <AITextUtilities
+                    text={transcription.transcription}
+                    onTextUpdate={(newText) => {
+                      onUpdate(transcription._id, newText);
+                    }}
+                  />
+
+                  {/* Smart Analytics */}
+                  <SmartAnalytics transcription={transcription} />
                 </div>
               )}
             </div>

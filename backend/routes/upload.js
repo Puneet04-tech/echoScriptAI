@@ -207,4 +207,70 @@ router.get('/provider-status', (req, res) => {
   }
 });
 
+// AI Text Utility Routes
+
+// Generate executive summary
+router.post('/ai/summary', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ message: 'Text is required' });
+    }
+
+    const summary = await transcriptionController.generateSummary(text);
+    res.json({ summary });
+  } catch (error) {
+    console.error('Generate summary error:', error);
+    res.status(500).json({ message: 'Error generating summary', error: error.message });
+  }
+});
+
+// Extract action items
+router.post('/ai/action-items', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ message: 'Text is required' });
+    }
+
+    const actionItems = await transcriptionController.extractActionItems(text);
+    res.json({ actionItems });
+  } catch (error) {
+    console.error('Extract action items error:', error);
+    res.status(500).json({ message: 'Error extracting action items', error: error.message });
+  }
+});
+
+// Remove filler words
+router.post('/ai/remove-fillers', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ message: 'Text is required' });
+    }
+
+    const cleanedText = await transcriptionController.removeFillerWords(text);
+    res.json({ cleanedText });
+  } catch (error) {
+    console.error('Remove filler words error:', error);
+    res.status(500).json({ message: 'Error removing filler words', error: error.message });
+  }
+});
+
+// Generate analytics
+router.post('/ai/analytics', async (req, res) => {
+  try {
+    const { text, duration } = req.body;
+    if (!text) {
+      return res.status(400).json({ message: 'Text is required' });
+    }
+
+    const analytics = await transcriptionController.generateAnalytics(text, duration);
+    res.json({ analytics });
+  } catch (error) {
+    console.error('Generate analytics error:', error);
+    res.status(500).json({ message: 'Error generating analytics', error: error.message });
+  }
+});
+
 module.exports = router;
