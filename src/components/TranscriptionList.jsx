@@ -221,7 +221,7 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
         {filteredTranscriptions.length === 0 ? (
           <div className="col-span-full text-center py-8 text-cyan-300/70">
             <p className="text-sm">No transcriptions match your filters</p>
@@ -236,7 +236,7 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
           return (
             <div
               key={transcription._id}
-              className={`glass-aurora border-teal-400/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:border-cyan-400/70 transition-all duration-300 aurora-glow ${isExpanded ? 'col-span-full md:col-span-2 lg:col-span-3' : ''}`}
+              className={`glass-aurora border-teal-400/50 backdrop-blur-xl rounded-2xl p-5 shadow-lg hover:shadow-2xl hover:border-cyan-400/70 transition-all duration-300 aurora-glow ${isExpanded ? 'col-span-full' : ''}`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
