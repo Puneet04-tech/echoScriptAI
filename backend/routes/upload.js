@@ -196,6 +196,23 @@ router.put('/transcription/:id', async (req, res) => {
   }
 });
 
+// Route to serve audio file
+router.get('/audio/:filename', (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const filePath = path.join(uploadsDir, filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: 'Audio file not found' });
+    }
+
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error('Serve audio error:', error);
+    res.status(500).json({ message: 'Error serving audio file' });
+  }
+});
+
 // Route to get provider status
 router.get('/provider-status', (req, res) => {
   try {

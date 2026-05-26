@@ -398,9 +398,9 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
               {isExpanded && transcription.status === 'completed' && transcription.transcription && (
                 <div className="mt-4 space-y-4">
                   {/* Audio Player */}
-                  {transcription.audioFile.path && (
+                  {transcription.audioFile.filename && (
                     <AudioPlayer
-                      audioUrl={transcription.audioFile.path}
+                      audioUrl={`${process.env.REACT_APP_API_URL?.replace('/api/upload', '') || 'https://echoscriptai.onrender.com'}/api/upload/audio/${transcription.audioFile.filename}`}
                       currentTime={currentTime}
                       onTimeUpdate={setCurrentTime}
                       onSeek={(time) => setCurrentTime(time)}
