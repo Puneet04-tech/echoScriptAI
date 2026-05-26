@@ -7,10 +7,7 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "env": {
-    "REACT_APP_API_URL": {
-      "description": "Backend API URL for deployed environment",
-      "value": "https://echoscriptai.onrender.com/api/upload"
-    }
+    "REACT_APP_API_URL": "https://echoscriptai.onrender.com/api/upload"
   },
   "headers": [
     {
