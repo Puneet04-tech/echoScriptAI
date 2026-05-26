@@ -221,22 +221,22 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+      <div className="space-y-4">
         {filteredTranscriptions.length === 0 ? (
-          <div className="col-span-full text-center py-8 text-cyan-300/70">
+          <div className="text-center py-12 text-cyan-300/70">
             <p className="text-sm">No transcriptions match your filters</p>
           </div>
         ) : (
           filteredTranscriptions.map((transcription) => {
           const isExpanded = expandedId === transcription._id;
           const text = transcription.transcription || '';
-          const shouldTruncate = text.length > 200 && !isExpanded;
-          const displayText = shouldTruncate ? text.substring(0, 200) + '...' : text;
+          const shouldTruncate = text.length > 300 && !isExpanded;
+          const displayText = shouldTruncate ? text.substring(0, 300) + '...' : text;
 
           return (
             <div
               key={transcription._id}
-              className={`glass-aurora border-teal-400/50 backdrop-blur-xl rounded-2xl p-5 shadow-lg hover:shadow-2xl hover:border-cyan-400/70 transition-all duration-300 aurora-glow ${isExpanded ? 'col-span-full' : ''}`}
+              className="glass-aurora border-teal-400/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:border-cyan-400/70 transition-all duration-300 aurora-glow"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -296,19 +296,20 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
               )}
 
               {transcription.status === 'completed' && transcription.transcription && (
-                <div className="glass-aurora border-cyan-400/50 rounded-lg p-4">
+                <div className="glass-aurora border-cyan-400/50 rounded-lg p-5 mt-4">
+                  <p className="text-xs text-teal-300 font-bold mb-3 uppercase tracking-widest">📝 Transcription</p>
                   {editingId === transcription._id ? (
                     <div className="space-y-3">
                       <textarea
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
-                        className="w-full p-3 bg-gray-900/30 border border-cyan-500/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 text-cyan-100 text-sm"
-                        rows={4}
+                        className="w-full p-4 bg-gray-900/30 border border-cyan-500/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 text-cyan-100 text-sm min-h-[140px]"
+                        rows={6}
                       />
                       <div className="flex space-x-2">
                         <button
                           onClick={() => saveEdit(transcription._id)}
-                          className="px-4 py-2 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded font-semibold text-sm hover:from-emerald-400 hover:to-teal-400 transition-all shadow-lg shadow-emerald-500/50"
+                          className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded font-semibold text-sm hover:from-emerald-400 hover:to-teal-400 transition-all shadow-lg shadow-emerald-500/50"
                         >
                           💾 Save
                         </button>
@@ -321,67 +322,73 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-start justify-between mb-2">
-                      <p className="text-cyan-100 whitespace-pre-wrap flex-1 leading-relaxed">{displayText}</p>
-                      <div className="flex items-center space-x-2 ml-2">
-                        <button
-                          onClick={() => toggleExpand(transcription._id)}
-                          className="text-teal-300 hover:text-teal-200 text-xs font-semibold transition-colors"
-                        >
-                          {isExpanded ? '▼ Less' : '▶ More'}
-                        </button>
-                        {text.length > 200 && !isExpanded && (
-                          <span className="text-cyan-400/50 text-xs">({text.length - 200} more chars)</span>
-                        )}
-                        <button
-                          onClick={() => handleCopy(text, transcription._id)}
-                          className="text-cyan-400 hover:text-cyan-300 p-1 transition-colors"
-                          title="Copy transcription"
-                        >
-                          {copiedId === transcription._id ? (
-                            <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
+                    <div className="space-y-3">
+                      <div className="bg-cyan-950/30 border border-cyan-500/30 rounded-lg p-4 min-h-[100px] max-h-[400px] overflow-y-auto">
+                        <p className="text-cyan-100 leading-relaxed break-words whitespace-pre-wrap">{displayText}</p>
+                      </div>
+                      <div className="flex items-center justify-between flex-wrap gap-3">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => toggleExpand(transcription._id)}
+                            className="px-3 py-1 text-teal-300 hover:text-teal-200 text-xs font-semibold transition-colors bg-teal-500/10 border border-teal-500/30 rounded hover:border-teal-500/60"
+                          >
+                            {isExpanded ? '▼ Collapse' : '▶ Expand Full'}
+                          </button>
+                          {text.length > 300 && !isExpanded && (
+                            <span className="text-cyan-400/70 text-xs font-medium">({text.length - 300} more chars)</span>
                           )}
-                        </button>
-                        <button
-                          onClick={() => startEdit(transcription._id, text)}
-                          className="text-teal-400 hover:text-teal-300 p-1 transition-colors"
-                          title="Edit transcription"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2h2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <div className="relative group">
-                          <button className="text-purple-400 hover:text-purple-300 p-1 transition-colors" title="Export">
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => handleCopy(text, transcription._id)}
+                            className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-cyan-500/10 rounded transition-colors"
+                            title="Copy transcription"
+                          >
+                            {copiedId === transcription._id ? (
+                              <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => startEdit(transcription._id, text)}
+                            className="text-teal-400 hover:text-teal-300 p-2 hover:bg-teal-500/10 rounded transition-colors"
+                            title="Edit transcription"
+                          >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2h2.828l8.586-8.586z" />
                             </svg>
                           </button>
-                          <div className="absolute right-0 mt-2 w-40 bg-linear-to-b from-purple-900/80 to-blue-900/80 border border-purple-500/50 rounded-lg shadow-lg aurora-glow opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-10 backdrop-blur-sm">
-                            <button
-                              onClick={() => exportTranscription(transcription, 'txt')}
-                              className="block w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-purple-500/30 border-b border-purple-500/20 first:rounded-t-lg"
-                            >
-                              📄 Export TXT
+                          <div className="relative group">
+                            <button className="text-purple-400 hover:text-purple-300 p-2 hover:bg-purple-500/10 rounded transition-colors" title="Export">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
                             </button>
-                            <button
-                              onClick={() => exportTranscription(transcription, 'srt')}
-                              className="block w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-purple-500/30 border-b border-purple-500/20"
-                            >
-                              🎬 Export SRT
-                            </button>
-                            <button
-                              onClick={() => exportTranscription(transcription, 'vtt')}
-                              className="block w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-purple-500/30 last:rounded-b-lg"
-                            >
-                              🎥 Export VTT
-                            </button>
+                            <div className="absolute right-0 mt-2 w-40 bg-gradient-to-b from-purple-900/80 to-blue-900/80 border border-purple-500/50 rounded-lg shadow-lg aurora-glow opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-10 backdrop-blur-sm">
+                              <button
+                                onClick={() => exportTranscription(transcription, 'txt')}
+                                className="block w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-purple-500/30 border-b border-purple-500/20 first:rounded-t-lg"
+                              >
+                                📄 Export TXT
+                              </button>
+                              <button
+                                onClick={() => exportTranscription(transcription, 'srt')}
+                                className="block w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-purple-500/30 border-b border-purple-500/20"
+                              >
+                                🎬 Export SRT
+                              </button>
+                              <button
+                                onClick={() => exportTranscription(transcription, 'vtt')}
+                                className="block w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-purple-500/30 last:rounded-b-lg"
+                              >
+                                🎥 Export VTT
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
