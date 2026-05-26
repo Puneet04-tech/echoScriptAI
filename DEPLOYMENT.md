@@ -67,7 +67,7 @@ Quick Start:
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
 5. Add Environment Variables:
-   - `REACT_APP_API_URL`: Your backend URL (e.g., https://echoscriptai-backend.onrender.com/api/upload)
+   - `REACT_APP_API_URL`: Your backend URL (e.g., https://echoscriptai.onrender.com/api/upload)
 6. Click "Deploy"
 
 ## Step 4: Ensure Frontend and Backend Work Seamlessly Together
@@ -105,8 +105,8 @@ Ensure these variables match:
 
 Example:
 - Frontend: `https://echoscriptai.vercel.app`
-- Backend: `https://echoscriptai-backend.onrender.com`
-- Frontend REACT_APP_API_URL: `https://echoscriptai-backend.onrender.com/api/upload`
+- Backend: `https://echoscriptai.onrender.com`
+- Frontend REACT_APP_API_URL: `https://echoscriptai.onrender.com/api/upload`
 - Backend CORS_ORIGIN: `https://echoscriptai.vercel.app`
 
 ### Test Full Flow
@@ -141,13 +141,13 @@ Example:
 
 **Check Backend Health:**
 ```bash
-curl https://echoscriptai-backend.onrender.com/
+curl https://echoscriptai.onrender.com/
 ```
 Should return: `{"message":"EchoScriptAI Backend Server is running!"}`
 
 **Check Provider Status:**
 ```bash
-curl https://echoscriptai-backend.onrender.com/api/upload/provider-status
+curl https://echoscriptai.onrender.com/api/upload/provider-status
 ```
 
 **Check Frontend Build:**

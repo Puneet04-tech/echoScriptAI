@@ -9,7 +9,7 @@
   "env": {
     "REACT_APP_API_URL": {
       "description": "Backend API URL for deployed environment",
-      "value": "https://echoscriptai-backend.onrender.com/api/upload"
+      "value": "https://echoscriptai.onrender.com/api/upload"
     }
   },
   "headers": [

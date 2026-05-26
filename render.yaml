@@ -9,7 +9,7 @@ services:
     publishPath: build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://echoscriptai-backend.onrender.com
+        value: https://echoscriptai.onrender.com/api/upload
         sync: false
 
   # Backend - Express.js API
