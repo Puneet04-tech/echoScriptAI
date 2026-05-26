@@ -171,7 +171,7 @@ const AudioRecorder = ({ onRecordingComplete }) => {
 
   return (
     <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow hover:border-teal-400/60 transition-colors">
-      <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">🎙️ Record Audio</h2>
+      <h2 className="text-2xl font-bold bg-linear-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">🎙️ Record Audio</h2>
       
       <div className="space-y-6">
         {error && (
@@ -190,7 +190,7 @@ const AudioRecorder = ({ onRecordingComplete }) => {
           {/* Recording indicator */}
           {isRecording && (
             <div className="flex items-center space-x-3 px-4 py-2 bg-red-950/40 border border-red-500/50 rounded-lg">
-              <div className="w-2.5 h-2.5 bg-gradient-to-r from-red-400 to-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+              <div className="w-2.5 h-2.5 bg-linear-to-r from-red-400 to-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
               <span className="text-red-300 font-semibold">Recording</span>
               <span className="text-cyan-300 font-mono text-sm">{formatTime(recordingTime)}</span>
             </div>
@@ -209,10 +209,10 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             disabled={processing}
             className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 font-bold ${
               isRecording
-                ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 shadow-lg shadow-red-500/50 scale-110 aurora-glow'
+                ? 'bg-linear-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 shadow-lg shadow-red-500/50 scale-110 aurora-glow'
                 : processing
                 ? 'bg-cyan-500/20 text-cyan-300/50 cursor-not-allowed border border-cyan-500/20'
-                : 'bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 shadow-lg shadow-purple-500/50 aurora-glow'
+                : 'bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 shadow-lg shadow-purple-500/50 aurora-glow'
             }`}
           >
             {isRecording ? (

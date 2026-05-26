@@ -94,7 +94,7 @@ const FileUpload = ({ onUpload }) => {
 
   return (
     <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow hover:border-teal-400/60 transition-colors">
-      <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">📁 Upload Audio File</h2>
+      <h2 className="text-2xl font-bold bg-linear-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">📁 Upload Audio File</h2>
       
       <div className="space-y-4">
         <div>
@@ -108,7 +108,7 @@ const FileUpload = ({ onUpload }) => {
               file:mr-4 file:py-2 file:px-4
               file:rounded-full file:border-0
               file:text-sm file:font-semibold
-              file:bg-gradient-to-r file:from-cyan-500 file:to-teal-500 file:text-white
+              file:bg-linear-to-r file:from-cyan-500 file:to-teal-500 file:text-white
               hover:file:from-cyan-400 hover:file:to-teal-400
               cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
               file:shadow-lg file:shadow-cyan-500/50"
@@ -150,7 +150,7 @@ const FileUpload = ({ onUpload }) => {
         {uploading && uploadProgress > 0 && (
           <div className="w-full bg-blue-900/30 rounded-full h-3 border border-blue-500/30">
             <div
-              className="bg-gradient-to-r from-blue-400 to-cyan-400 h-3 rounded-full transition-all duration-300 shadow-lg shadow-cyan-500/50"
+              className="bg-linear-to-r from-blue-400 to-cyan-400 h-3 rounded-full transition-all duration-300 shadow-lg shadow-cyan-500/50"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
@@ -162,7 +162,7 @@ const FileUpload = ({ onUpload }) => {
           className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${
             !file || uploading
               ? 'bg-cyan-500/20 text-cyan-300/50 cursor-not-allowed border border-cyan-500/20'
-              : 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-500/50 aurora-glow'
+              : 'bg-linear-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-500/50 aurora-glow'
           }`}
         >
           {uploading ? '⏳ Processing...' : '🚀 Upload & Transcribe'}

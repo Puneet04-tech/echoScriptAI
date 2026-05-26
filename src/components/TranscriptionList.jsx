@@ -156,7 +156,7 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
   if (!transcriptions || transcriptions.length === 0) {
     return (
       <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-4 font-poppins">📋 Transcriptions</h2>
+        <h2 className="text-2xl font-bold bg-linear-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-4 font-poppins">📋 Transcriptions</h2>
         <div className="text-center py-12 text-cyan-300/70">
           <svg className="mx-auto h-12 w-12 text-teal-400/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -171,7 +171,7 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
   return (
     <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow hover:border-teal-400/60 transition-colors">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent font-poppins">📋 Transcriptions</h2>
+        <h2 className="text-2xl font-bold bg-linear-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent font-poppins">📋 Transcriptions</h2>
         <span className="text-sm text-teal-300 bg-teal-500/20 px-3 py-1 rounded-full border border-teal-500/50">
           {filteredTranscriptions.length} of {transcriptions.length}
         </span>
@@ -304,7 +304,7 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => saveEdit(transcription._id)}
-                          className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded font-semibold text-sm hover:from-emerald-400 hover:to-teal-400 transition-all shadow-lg shadow-emerald-500/50"
+                          className="px-4 py-2 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded font-semibold text-sm hover:from-emerald-400 hover:to-teal-400 transition-all shadow-lg shadow-emerald-500/50"
                         >
                           💾 Save
                         </button>
@@ -358,7 +358,7 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                           </button>
-                          <div className="absolute right-0 mt-2 w-40 bg-gradient-to-b from-purple-900/80 to-blue-900/80 border border-purple-500/50 rounded-lg shadow-lg aurora-glow opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-10 backdrop-blur-sm">
+                          <div className="absolute right-0 mt-2 w-40 bg-linear-to-b from-purple-900/80 to-blue-900/80 border border-purple-500/50 rounded-lg shadow-lg aurora-glow opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-10 backdrop-blur-sm">
                             <button
                               onClick={() => exportTranscription(transcription, 'txt')}
                               className="block w-full text-left px-4 py-2 text-sm text-cyan-200 hover:bg-purple-500/30 border-b border-purple-500/20 first:rounded-t-lg"

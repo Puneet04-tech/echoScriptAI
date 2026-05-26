@@ -30,7 +30,7 @@ const TranscriptionStats = ({ transcriptions }) => {
 
   return (
     <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow hover:border-teal-400/60 transition-colors">
-      <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">📊 Statistics</h2>
+      <h2 className="text-2xl font-bold bg-linear-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">📊 Statistics</h2>
       
       <div className="grid grid-cols-2 gap-4">
         {/* Status Stats */}
@@ -106,7 +106,7 @@ const TranscriptionStats = ({ transcriptions }) => {
             </div>
             <div className="w-full bg-emerald-900/30 rounded-full h-2 border border-emerald-500/30">
               <div
-                className="bg-gradient-to-r from-emerald-400 to-teal-400 h-2 rounded-full transition-all shadow-lg shadow-emerald-500/50"
+                className="bg-linear-to-r from-emerald-400 to-teal-400 h-2 rounded-full transition-all shadow-lg shadow-emerald-500/50"
                 style={{ width: `${total > 0 ? (completed / total) * 100 : 0}%` }}
               ></div>
             </div>

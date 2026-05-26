@@ -105,7 +105,7 @@ const RealTimeTranscription = ({ onTranscriptionComplete, language = 'en-US' }) 
   if (!isSupported) {
     return (
       <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-4 font-poppins">🔊 Real-Time Transcription</h2>
+        <h2 className="text-2xl font-bold bg-linear-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-4 font-poppins">🔊 Real-Time Transcription</h2>
         <div className="bg-red-950/40 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg">
           ✕ {error}
         </div>
@@ -115,7 +115,7 @@ const RealTimeTranscription = ({ onTranscriptionComplete, language = 'en-US' }) 
 
   return (
     <div className="glass-aurora border-cyan-500/50 backdrop-blur-2xl rounded-2xl aurora-glow hover:border-teal-400/60 transition-colors">
-      <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">🔊 Real-Time Transcription</h2>
+      <h2 className="text-2xl font-bold bg-linear-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent mb-6 font-poppins">🔊 Real-Time Transcription</h2>
       
       <div className="space-y-6">
         {/* Controls */}
@@ -123,7 +123,7 @@ const RealTimeTranscription = ({ onTranscriptionComplete, language = 'en-US' }) 
           {!isListening ? (
             <button
               onClick={startListening}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 text-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg shadow-purple-500/50 aurora-glow"
+              className="flex-1 bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 text-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg shadow-purple-500/50 aurora-glow"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -133,7 +133,7 @@ const RealTimeTranscription = ({ onTranscriptionComplete, language = 'en-US' }) 
           ) : (
             <button
               onClick={stopListening}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg shadow-red-500/50 aurora-glow"
+              className="flex-1 bg-linear-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 font-semibold shadow-lg shadow-red-500/50 aurora-glow"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

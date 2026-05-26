@@ -1,0 +1,46 @@
+services:
+  # Frontend - React App on Vercel/Render
+  - type: web
+    name: echoscriptai-frontend
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    publishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://echoscriptai-backend.onrender.com
+        sync: false
+
+  # Backend - Express.js API
+  - type: web
+    name: echoscriptai-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DEFAULT_STT_PROVIDER
+        value: whisper
+      - key: CORS_ORIGIN
+        value: https://echoscriptai-frontend.onrender.com
+        sync: false
+
+databases:
+  # MongoDB Atlas (managed externally)
+  - name: echoscriptai-mongodb
+    databaseName: echoscriptai
+    user: echoscriptai-user

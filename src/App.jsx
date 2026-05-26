@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ErrorBanner from './components/ErrorBanner';
+import { AuthModal } from './components/AuthModal';
 
 const clearError = () => setError('');
 import FileUpload from './components/FileUpload';
@@ -19,10 +20,15 @@ function App() {
   const [fallbackAudioFile, setFallbackAudioFile] = useState(null);
   const [fallbackTranscriptionId, setFallbackTranscriptionId] = useState(null);
   const [showRealTime, setShowRealTime] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     checkBackendConnection();
     loadTranscriptions();
+    // Check if user is already authenticated
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
   }, []);
 
   const checkBackendConnection = async () => {
@@ -256,6 +262,20 @@ function App() {
     setTranscriptions(prev => [newTranscription, ...prev]);
   };
 
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    setIsAuthenticated(true);
+  };
+
+  const handleAuthClose = () => {
+    setShowAuthModal(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       <div className="bg-animated"></div>
@@ -290,23 +310,38 @@ function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent font-poppins">EchoScriptAI</h1>
+                <h1 className="text-4xl font-bold bg-linear-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent font-poppins">EchoScriptAI</h1>
                 <p className="text-teal-300 mt-2 text-lg font-light">Audio Transcription Service</p>
               </div>
               <div className="flex items-center space-x-6">
+                {!isAuthenticated ? (
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="px-6 py-2 rounded-lg font-medium transition-all duration-300 bg-linear-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/50 aurora-glow hover:from-cyan-400 hover:to-teal-400"
+                  >
+                    Login
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleLogout}
+                    className="px-6 py-2 rounded-lg font-medium transition-all duration-300 bg-linear-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/50 hover:from-red-400 hover:to-pink-400"
+                  >
+                    Logout
+                  </button>
+                )}
                 <button
                   onClick={() => setShowRealTime(!showRealTime)}
                   className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${showRealTime
-                      ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/50 aurora-glow'
-                      : 'bg-gradient-to-r from-blue-500/40 to-purple-500/40 text-cyan-200 border border-cyan-400/50 hover:from-blue-500/60 hover:to-purple-500/60'
+                      ? 'bg-linear-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/50 aurora-glow'
+                      : 'bg-linear-to-r from-blue-500/40 to-purple-500/40 text-cyan-200 border border-cyan-400/50 hover:from-blue-500/60 hover:to-purple-500/60'
                     }`}
                 >
                   {showRealTime ? '📁 File Upload' : '🎤 Real-Time'}
                 </button>
                 <div className="flex items-center space-x-2">
                   <div className={`w-3 h-3 rounded-full ${backendConnected
-                      ? 'bg-gradient-to-r from-emerald-400 to-teal-400 animate-pulse shadow-lg shadow-teal-500/50'
-                      : 'bg-gradient-to-r from-red-500 to-pink-500 shadow-lg shadow-red-500/50'
+                      ? 'bg-linear-to-r from-emerald-400 to-teal-400 animate-pulse shadow-lg shadow-teal-500/50'
+                      : 'bg-linear-to-r from-red-500 to-pink-500 shadow-lg shadow-red-500/50'
                     }`}></div>
                   <span className={`text-sm font-medium ${backendConnected ? 'text-emerald-300' : 'text-red-400'
                     }`}>
@@ -326,7 +361,7 @@ function App() {
         }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center space-x-3">
-              <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm text-red-300">{error}</span>
@@ -397,6 +432,9 @@ function App() {
           </p>
         </div>
       </footer>
+
+      {/* Auth Modal */}
+      {showAuthModal && <AuthModal onSuccess={handleAuthSuccess} onClose={handleAuthClose} />}
     </div>
   );
 }

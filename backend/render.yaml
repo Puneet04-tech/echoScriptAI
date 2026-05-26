@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: echoscriptai-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DEFAULT_STT_PROVIDER
+        value: whisper

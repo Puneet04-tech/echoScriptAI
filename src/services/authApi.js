@@ -1,7 +1,7 @@
 // Auth API helper for registration and login
 import axios from 'axios';
 
-const AUTH_BASE_URL = 'http://localhost:5000/api/auth';
+const AUTH_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace('/api/upload', '') + '/api/auth';
 
 const authInstance = axios.create({
   baseURL: AUTH_BASE_URL,
