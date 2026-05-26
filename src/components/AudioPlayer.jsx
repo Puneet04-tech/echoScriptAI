@@ -1,10 +1,21 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, forwardRef } from 'react';
 
-export const AudioPlayer = ({ audioUrl, currentTime, onTimeUpdate, onSeek }) => {
+export const AudioPlayer = forwardRef(({ audioUrl, currentTime, onTimeUpdate, onSeek }, ref) => {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
+
+  // Expose audioRef through the forwardRef
+  useEffect(() => {
+    if (ref) {
+      if (typeof ref === 'function') {
+        ref({ audioRef });
+      } else {
+        ref.current = { audioRef };
+      }
+    }
+  }, [ref]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -128,4 +139,6 @@ export const AudioPlayer = ({ audioUrl, currentTime, onTimeUpdate, onSeek }) => 
       </div>
     </div>
   );
-};
+});
+
+AudioPlayer.displayName = 'AudioPlayer';

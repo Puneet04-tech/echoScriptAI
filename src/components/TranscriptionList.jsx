@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { AudioPlayer } from './AudioPlayer';
 import { AITextUtilities } from './AITextUtilities';
 import { SmartAnalytics } from './SmartAnalytics';
+import { InteractiveTranscription } from './InteractiveTranscription';
 
 const TranscriptionList = ({ transcriptions, onDelete, onUpdate, onRetryBrowserFallback }) => {
   const [expandedId, setExpandedId] = useState(null);
@@ -13,6 +14,8 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate, onRetryBrowserF
   const [editText, setEditText] = useState('');
   const [currentTime, setCurrentTime] = useState(0);
   const [retryingId, setRetryingId] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRefs = useRef({});
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -451,12 +454,24 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate, onRetryBrowserF
                   {/* Audio Player */}
                   {transcription.audioFile.filename && (
                     <AudioPlayer
+                      ref={(ref) => {
+                        audioRefs.current[transcription._id] = ref?.audioRef;
+                      }}
                       audioUrl={`${process.env.REACT_APP_API_URL?.replace('/api/upload', '') || 'https://echoscriptai.onrender.com'}/api/upload/audio/${transcription.audioFile.filename}`}
                       currentTime={currentTime}
                       onTimeUpdate={setCurrentTime}
                       onSeek={(time) => setCurrentTime(time)}
                     />
                   )}
+
+                  {/* Interactive Transcription */}
+                  <InteractiveTranscription
+                    text={transcription.transcription}
+                    duration={transcription.duration || 0}
+                    audioRef={audioRefs.current[transcription._id]}
+                    isPlaying={isPlaying}
+                    onTimeClick={(time) => setCurrentTime(time)}
+                  />
 
                   {/* AI Text Utilities */}
                   <AITextUtilities
