@@ -15,7 +15,7 @@ Go to: https://dashboard.render.com → Select "echoscriptai" service → Enviro
 ```
 PORT=10000
 
-MONGODB_URI=mongodb+srv://chaturvedipuneet200_db_user:BGVKxNItxl9y7HwH@meter-flow-cluster.37xjisu.mongodb.net/?appName=meter-flow-cluster
+MONGODB_URI=
 
 CORS_ORIGIN=https://echo-script-ai-t556.vercel.app
 
