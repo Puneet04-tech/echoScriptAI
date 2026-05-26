@@ -107,7 +107,9 @@ class TranscriptionController {
     // All providers failed
     return {
       success: false,
-      error: 'All transcription providers failed. Please use browser-based transcription as fallback.',
+      error: 'Server transcription failed: ' + (providersToTry.length > 0 
+        ? 'API quota exceeded or service unavailable. Try browser-based transcription.' 
+        : 'No transcription providers configured.'),
       useBrowserFallback: true,
     };
   }

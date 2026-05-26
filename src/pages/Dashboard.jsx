@@ -217,6 +217,13 @@ export default function Dashboard({ user, onLogout }) {
     );
   };
 
+  const handleRetryBrowserFallback = (transcription) => {
+    // Set up browser fallback for this specific transcription
+    setFallbackAudioFile({ name: transcription.audioFile.originalName });
+    setFallbackTranscriptionId(transcription._id);
+    setShowBrowserFallback(true);
+  };
+
   const handleRealTimeTranscriptionComplete = (text) => {
     const newTranscription = {
       _id: Date.now().toString(),
@@ -372,6 +379,7 @@ export default function Dashboard({ user, onLogout }) {
                 transcriptions={transcriptions}
                 onDelete={handleDeleteTranscription}
                 onUpdate={handleTranscriptionUpdate}
+                onRetryBrowserFallback={handleRetryBrowserFallback}
               />
             )}
           </div>

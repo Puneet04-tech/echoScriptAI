@@ -3,7 +3,7 @@ import { AudioPlayer } from './AudioPlayer';
 import { AITextUtilities } from './AITextUtilities';
 import { SmartAnalytics } from './SmartAnalytics';
 
-const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
+const TranscriptionList = ({ transcriptions, onDelete, onUpdate, onRetryBrowserFallback }) => {
   const [expandedId, setExpandedId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,6 +12,7 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
   const [currentTime, setCurrentTime] = useState(0);
+  const [retryingId, setRetryingId] = useState(null);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -49,6 +50,14 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
+  };
+
+  const handleRetryBrowserFallback = (transcription) => {
+    setRetryingId(transcription._id);
+    if (onRetryBrowserFallback) {
+      onRetryBrowserFallback(transcription);
+    }
+    setTimeout(() => setRetryingId(null), 2000);
   };
 
   const startEdit = (id, text) => {
@@ -357,9 +366,23 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
 
               {transcription.status === 'failed' && (
                 <div className="bg-red-950/40 border border-red-500/50 rounded-lg p-4">
-                  <p className="text-sm text-red-300">
+                  <p className="text-sm text-red-300 mb-3">
                     <span className="font-semibold">✕ Error:</span> {transcription.error || 'Transcription failed'}
                   </p>
+                  {transcription.useBrowserFallback && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-red-400">
+                        💡 <span className="font-semibold">Tip:</span> Server transcription failed. You can use browser-based transcription as fallback.
+                      </p>
+                      <button
+                        onClick={() => handleRetryBrowserFallback(transcription)}
+                        disabled={retryingId === transcription._id}
+                        className="ml-3 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded font-semibold text-sm hover:from-orange-400 hover:to-amber-400 transition-all shadow-lg shadow-orange-500/50 disabled:opacity-50 flex-shrink-0"
+                      >
+                        {retryingId === transcription._id ? '🌐 Using Browser STT...' : '🌐 Use Browser STT'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
