@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
 
 const transcriptionSchema = new mongoose.Schema({
+  // User who owns this transcription
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
+
   // Audio file information
   audioFile: {
     filename: {

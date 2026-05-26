@@ -117,12 +117,14 @@ class TranscriptionController {
    * @param {Object} fileData - File information from multer
    * @param {string} provider - STT provider
    * @param {string} languageCode - Language code
+   * @param {string} userId - User ID
    * @returns {Promise<Object>} Transcription record
    */
-  async transcribeAndSave(fileData, provider = null, languageCode = 'en') {
+  async transcribeAndSave(fileData, provider = null, languageCode = 'en', userId = null) {
     try {
       // Create transcription record with pending status
       const transcription = new Transcription({
+        userId: userId,
         audioFile: {
           filename: fileData.filename,
           originalName: fileData.originalname,

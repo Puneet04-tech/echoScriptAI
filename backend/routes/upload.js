@@ -109,7 +109,7 @@ router.post('/multiple', upload.array('audios', 5), (req, res) => {
 });
 
 // Route to transcribe uploaded audio file
-router.post('/transcribe', upload.single('audio'), async (req, res) => {
+router.post('/transcribe', auth, upload.single('audio'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -121,7 +121,8 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
     const transcription = await transcriptionController.transcribeAndSave(
       req.file,
       provider,
-      languageCode
+      languageCode,
+      req.userId  // Pass authenticated user ID
     );
 
     res.json({
@@ -135,12 +136,17 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
 });
 
 // Route to get transcription by ID
-router.get('/transcription/:id', async (req, res) => {
+router.get('/transcription/:id', auth, async (req, res) => {
   try {
     const transcription = await transcriptionController.getTranscriptionById(req.params.id);
     
     if (!transcription) {
       return res.status(404).json({ message: 'Transcription not found' });
+    }
+
+    // Verify user owns this transcription
+    if (transcription.userId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Forbidden: You do not own this transcription' });
     }
 
     res.json(transcription);
@@ -150,10 +156,10 @@ router.get('/transcription/:id', async (req, res) => {
   }
 });
 
-// Route to get all transcriptions
-router.get('/transcriptions', async (req, res) => {
+// Route to get all transcriptions for authenticated user
+router.get('/transcriptions', auth, async (req, res) => {
   try {
-    const filters = {};
+    const filters = { userId: req.userId };
     if (req.query.status) {
       filters.status = req.query.status;
     }
@@ -170,10 +176,21 @@ router.get('/transcriptions', async (req, res) => {
 });
 
 // Route to delete transcription
-router.delete('/transcription/:id', async (req, res) => {
+router.delete('/transcription/:id', auth, async (req, res) => {
   try {
-    const transcription = await transcriptionController.deleteTranscription(req.params.id);
-    res.json({ message: 'Transcription deleted', transcription });
+    const transcription = await transcriptionController.getTranscriptionById(req.params.id);
+    
+    if (!transcription) {
+      return res.status(404).json({ message: 'Transcription not found' });
+    }
+
+    // Verify user owns this transcription
+    if (transcription.userId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Forbidden: You do not own this transcription' });
+    }
+
+    const deleted = await transcriptionController.deleteTranscription(req.params.id);
+    res.json({ message: 'Transcription deleted', transcription: deleted });
   } catch (error) {
     console.error('Delete transcription error:', error);
     res.status(500).json({ message: 'Error deleting transcription' });
@@ -181,11 +198,22 @@ router.delete('/transcription/:id', async (req, res) => {
 });
 
 // Route to update transcription text
-router.put('/transcription/:id', async (req, res) => {
+router.put('/transcription/:id', auth, async (req, res) => {
   try {
-    const { transcription, status, provider } = req.body;
+    const transcription = await transcriptionController.getTranscriptionById(req.params.id);
+    
+    if (!transcription) {
+      return res.status(404).json({ message: 'Transcription not found' });
+    }
+
+    // Verify user owns this transcription
+    if (transcription.userId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Forbidden: You do not own this transcription' });
+    }
+
+    const { transcriptionText, status, provider } = req.body;
     const updated = await transcriptionController.updateTranscription(req.params.id, {
-      transcription,
+      transcription: transcriptionText || transcription.transcription,
       status: status || 'completed',
       provider: provider || 'browser'
     });

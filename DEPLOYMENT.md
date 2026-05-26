@@ -50,7 +50,7 @@ This guide explains how to deploy EchoScriptAI to Render.
    - `DEEPGRAM_API_KEY`: Your Deepgram API key
    - `JWT_SECRET`: Generate a random string (use: `openssl rand -base64 32`)
    - `DEFAULT_STT_PROVIDER`: whisper
-   - `CORS_ORIGIN`: Your frontend URL (e.g., https://echoscriptai-frontend.onrender.com)
+   - `CORS_ORIGIN`: https://echo-script-ai-t556.vercel.app
 6. Click "Deploy Web Service"
 
 ## Step 3: Deploy Frontend on Vercel
@@ -67,7 +67,7 @@ Quick Start:
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
 5. Add Environment Variables:
-   - `REACT_APP_API_URL`: Your backend URL (e.g., https://echoscriptai.onrender.com/api/upload)
+   - `REACT_APP_API_URL`: https://echoscriptai.onrender.com/api
 6. Click "Deploy"
 
 ## Step 4: Ensure Frontend and Backend Work Seamlessly Together
@@ -83,13 +83,14 @@ Quick Start:
 
 ### Verify Connection
 
-1. Open your frontend URL in browser
+1. Open https://echo-script-ai-t556.vercel.app/ in browser
 2. Open browser DevTools (F12)
 3. Go to Network tab
-4. Try to load transcriptions
-5. Check that API requests succeed (status 200)
-6. If you see CORS errors, verify:
-   - `CORS_ORIGIN` matches frontend URL exactly
+4. Register a new account or login
+5. Try to upload an audio file
+6. Check that API requests succeed (status 200)
+7. If you see CORS errors, verify:
+   - Backend `CORS_ORIGIN` is set to `https://echo-script-ai-t556.vercel.app`
    - Backend is running
    - No typos in URLs
 
@@ -98,16 +99,16 @@ Quick Start:
 Ensure these variables match:
 
 **Frontend (Vercel):**
-- `REACT_APP_API_URL` = Backend URL + `/api/upload`
+- `REACT_APP_API_URL` = `https://echoscriptai.onrender.com/api`
 
 **Backend (Render):**
-- `CORS_ORIGIN` = Frontend URL (without path)
+- `CORS_ORIGIN` = `https://echo-script-ai-t556.vercel.app`
 
-Example:
-- Frontend: `https://echoscriptai.vercel.app`
+**Current Deployment:**
+- Frontend: `https://echo-script-ai-t556.vercel.app`
 - Backend: `https://echoscriptai.onrender.com`
-- Frontend REACT_APP_API_URL: `https://echoscriptai.onrender.com/api/upload`
-- Backend CORS_ORIGIN: `https://echoscriptai.vercel.app`
+- Frontend REACT_APP_API_URL: `https://echoscriptai.onrender.com/api`
+- Backend CORS_ORIGIN: `https://echo-script-ai-t556.vercel.app`
 
 ### Test Full Flow
 
