@@ -258,6 +258,14 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
                     <span className="text-xs text-teal-300/70">
                       📅 {formatDate(transcription.createdAt)}
                     </span>
+                    {transcription.status === 'completed' && transcription.transcription && (
+                      <button
+                        onClick={() => toggleExpand(transcription._id)}
+                        className="px-3 py-1 text-xs font-bold rounded-lg bg-gradient-to-r from-cyan-500/30 to-teal-500/30 text-cyan-200 border border-cyan-500/50 hover:border-cyan-400 hover:from-cyan-500/50 hover:to-teal-500/50 transition-all"
+                      >
+                        {isExpanded ? '▼ Collapse' : '▶ Show Details & Analytics'}
+                      </button>
+                    )}
                   </div>
                   <p className="text-sm text-cyan-200 mb-2 font-medium">
                     <span className="text-teal-300">📁 File:</span> {transcription.audioFile.originalName}
@@ -356,57 +364,62 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
               )}
 
               {transcription.status === 'completed' && transcription.transcription && (
-                <div className="glass-aurora border-cyan-400/50 rounded-lg p-5 mt-4">
-                  <p className="text-xs text-teal-300 font-bold mb-3 uppercase tracking-widest">📝 Transcription</p>
-                  {editingId === transcription._id ? (
-                    <div className="space-y-3">
-                      <textarea
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        className="w-full p-4 bg-gray-900/30 border border-cyan-500/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 text-cyan-100 text-sm min-h-[140px]"
-                        rows={6}
-                      />
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => saveEdit(transcription._id)}
-                          className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded font-semibold text-sm hover:from-emerald-400 hover:to-teal-400 transition-all shadow-lg shadow-emerald-500/50"
-                        >
-                          💾 Save
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="px-4 py-2 bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 rounded font-semibold text-sm hover:bg-cyan-500/30 transition-all"
-                        >
-                          ✕ Cancel
-                        </button>
-                      </div>
+                <div className="space-y-4">
+                  {/* TRANSCRIPTION PREVIEW - ALWAYS VISIBLE */}
+                  <div className="glass-aurora border-cyan-400/60 rounded-lg p-5 bg-gradient-to-br from-cyan-950/40 to-teal-950/30">
+                    <p className="text-xs text-teal-300 font-bold mb-3 uppercase tracking-widest">📝 Transcription</p>
+                    <div className="bg-cyan-950/50 border border-cyan-500/40 rounded-lg p-4 min-h-[80px] max-h-[200px] overflow-y-auto">
+                      <p className="text-cyan-100 leading-relaxed break-words whitespace-pre-wrap text-sm">{displayText}</p>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="bg-cyan-950/30 border border-cyan-500/30 rounded-lg p-4 min-h-[100px] max-h-[400px] overflow-y-auto">
-                        <p className="text-cyan-100 leading-relaxed break-words whitespace-pre-wrap">{displayText}</p>
-                      </div>
-                      <div className="flex items-center justify-between flex-wrap gap-3">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => toggleExpand(transcription._id)}
-                            className="px-3 py-1 text-teal-300 hover:text-teal-200 text-xs font-semibold transition-colors bg-teal-500/10 border border-teal-500/30 rounded hover:border-teal-500/60"
-                          >
-                            {isExpanded ? '▼ Collapse' : '▶ Expand Full'}
-                          </button>
-                          {text.length > 300 && !isExpanded && (
-                            <span className="text-cyan-400/70 text-xs font-medium">({text.length - 300} more chars)</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {transcription.processingTime > 0 && (
-                    <p className="text-xs text-teal-300/70 mt-2 font-medium">
-                      ⏱️ Processing time: {transcription.processingTime}ms
-                    </p>
-                  )}
+                    {text.length > 300 && !isExpanded && (
+                      <p className="text-cyan-400/70 text-xs font-medium mt-2">📋 {text.length - 300} more characters...</p>
+                    )}
+                  </div>
                 </div>
+              )}
+
+              {transcription.status === 'processing' && (
+                <div className="bg-yellow-950/40 border border-yellow-500/50 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-yellow-400/30 border-t-yellow-400"></div>
+                    <span className="text-sm text-yellow-300 font-medium">⟳ Processing audio...</span>
+                  </div>
+                </div>
+              )}
+
+              {/* EDIT MODE - Show when editing */}
+              {editingId === transcription._id && (
+                <div className="glass-aurora border-cyan-400/50 rounded-lg p-5 mt-4">
+                  <p className="text-xs text-teal-300 font-bold mb-3 uppercase tracking-widest">✏️ Edit Transcription</p>
+                  <div className="space-y-3">
+                    <textarea
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="w-full p-4 bg-gray-900/30 border border-cyan-500/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 text-cyan-100 text-sm min-h-[140px]"
+                      rows={6}
+                    />
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => saveEdit(transcription._id)}
+                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded font-semibold text-sm hover:from-emerald-400 hover:to-teal-400 transition-all shadow-lg shadow-emerald-500/50"
+                      >
+                        💾 Save
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="px-4 py-2 bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 rounded font-semibold text-sm hover:bg-cyan-500/30 transition-all"
+                      >
+                        ✕ Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {transcription.processingTime > 0 && (
+                <p className="text-xs text-teal-300/70 mt-2 font-medium">
+                  ⏱️ Processing time: {transcription.processingTime}ms
+                </p>
               )}
 
               {/* Audio Player and AI Features - Only show when expanded */}
