@@ -324,13 +324,14 @@ const TranscriptionList = ({ transcriptions, onDelete, onUpdate }) => {
                     <div className="flex items-start justify-between mb-2">
                       <p className="text-cyan-100 whitespace-pre-wrap flex-1 leading-relaxed">{displayText}</p>
                       <div className="flex items-center space-x-2 ml-2">
-                        {text.length > 200 && (
-                          <button
-                            onClick={() => toggleExpand(transcription._id)}
-                            className="text-teal-300 hover:text-teal-200 text-xs font-semibold transition-colors"
-                          >
-                            {isExpanded ? '▼ Less' : '▶ More'}
-                          </button>
+                        <button
+                          onClick={() => toggleExpand(transcription._id)}
+                          className="text-teal-300 hover:text-teal-200 text-xs font-semibold transition-colors"
+                        >
+                          {isExpanded ? '▼ Less' : '▶ More'}
+                        </button>
+                        {text.length > 200 && !isExpanded && (
+                          <span className="text-cyan-400/50 text-xs">({text.length - 200} more chars)</span>
                         )}
                         <button
                           onClick={() => handleCopy(text, transcription._id)}
