@@ -1,7 +1,13 @@
 // Auth API helper for registration and login
 import axios from 'axios';
 
-const AUTH_BASE_URL = (process.env.REACT_APP_API_URL || 'https://echoscriptai.onrender.com/api/upload').replace('/api/upload', '') + '/api/auth';
+const AUTH_BASE_URL =
+  (
+    import.meta.env.VITE_REACT_APP_API_URL ||
+    import.meta.env.REACT_APP_API_URL ||
+    'https://echoscriptai.onrender.com/api/upload'
+  )
+    .replace('/api/upload', '') + '/api/auth';
 
 const authInstance = axios.create({
   baseURL: AUTH_BASE_URL,

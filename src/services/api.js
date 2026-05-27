@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// Use deployed backend URL or environment variable
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://echoscriptai.onrender.com/api';
+// Use deployed backend URL or environment variable (Vite)
+const API_BASE_URL =
+  import.meta.env.VITE_REACT_APP_API_URL ||
+  import.meta.env.REACT_APP_API_URL ||
+  'https://echoscriptai.onrender.com/api';
 
 // Create separate axios instances
 const uploadAxios = axios.create({
