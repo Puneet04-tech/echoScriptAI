@@ -129,8 +129,10 @@ export const api = {
         'Content-Type': 'multipart/form-data',
       },
       onUploadProgress: (progressEvent) => {
+        // Intentionally not logging upload progress in production.
+        // Consumers can add a UI callback if needed.
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        console.log(`Upload progress: ${percentCompleted}%`);
+        void percentCompleted;
       },
     });
 

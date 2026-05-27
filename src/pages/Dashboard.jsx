@@ -17,11 +17,6 @@ export default function Dashboard({ user, onLogout }) {
   const [fallbackTranscriptionId, setFallbackTranscriptionId] = useState(null);
   const [showRealTime, setShowRealTime] = useState(false);
 
-  useEffect(() => {
-    checkBackendConnection();
-    loadTranscriptions();
-  }, [user]);
-
   const checkBackendConnection = async () => {
     try {
       await api.getProviderStatus();
@@ -37,20 +32,7 @@ export default function Dashboard({ user, onLogout }) {
     try {
       setLoading(true);
       const data = await api.getTranscriptions();
-      
-      // Debug logging
-      console.log('Fetched transcriptions:', data);
-      if (data && data.length > 0) {
-        console.log('First transcription:', {
-          id: data[0]._id,
-          status: data[0].status,
-          hasText: !!data[0].transcription,
-          textLength: data[0].transcription?.length || 0,
-          provider: data[0].provider,
-          error: data[0].error
-        });
-      }
-      
+
       setTranscriptions(data);
       setError('');
     } catch (error) {
@@ -61,7 +43,26 @@ export default function Dashboard({ user, onLogout }) {
     }
   };
 
-  const handleFileUpload = async (file, onProgress) => {
+  useEffect(() => {
+    let isMounted = true;
+
+    // Defer state updates until after the current effect flush
+    // to avoid "cascading renders" lint warnings.
+    void Promise.resolve()
+      .then(() => checkBackendConnection())
+      .catch(() => {
+        // error is handled inside checkBackendConnection
+      })
+      .finally(() => {
+        if (isMounted) void loadTranscriptions();
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  const handleFileUpload = async (file) => {
     try {
       // TODO: Pass userId to backend
       const result = await api.transcribeAudio(file);
